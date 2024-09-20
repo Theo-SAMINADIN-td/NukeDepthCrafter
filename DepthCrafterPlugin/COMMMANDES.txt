@@ -1,0 +1,5 @@
+python.exe -m pip install numpy
+python.exe -m pip install torch==2.1.1+cu118 xformers --index-url https://download.pytorch.org/whl/cu118
+python.exe -m pip install -r requirement.txt
+
+python 3.1.1
