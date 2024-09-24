@@ -44,9 +44,9 @@ def UpdateBtn():
 def GenerateDepthAction():
     
     depthcrafter_demo = DepthCrafterDemo(
-        unet_path=r"C:\Users\samin\.nuke\DepthCrafterPlugin",
+        unet_path=r"C:\Users\Theo\.nuke\DepthCrafterPlugin",
         pre_train_path="stabilityai/stable-video-diffusion-img2vid-xt",
-        cpu_offload=nuke.thisNode().knob('CPUOFF_OPT').getValue(),
+        cpu_offload=nuke.thisNode().knob('CPUOFF_OPT').value(),
     )
     # process the videos, the video paths are separated by comma
     video_paths = [nuke.thisNode().knob('FilePath').getValue()]
@@ -54,14 +54,14 @@ def GenerateDepthAction():
     for video in video_paths:
         depthcrafter_demo.infer(
             video,
-            nuke.thisNode().knob('InferSteps').getValue(),                    # args.num_inference_steps,
-            nuke.thisNode().knob('CFG').getValue(),                    # args.guidance_scale,
+            nuke.thisNode().knob('InferSteps').value(),                    # args.num_inference_steps,
+            nuke.thisNode().knob('CFG').value(),                    # args.guidance_scale,
             nuke.thisNode().knob('OutputPath').getValue(),       #args.save_folder,
             window_size= 110,       #args.window_size,
-            process_length=nuke.thisNode().knob('FrameNumber').getValue(),    #args.process_length,
+            process_length=nuke.thisNode().knob('FrameNumber').value(),    #args.process_length,
             overlap= 25,              #args.overlap,
-            max_res=nuke.thisNode().knob('MaxRes').getValue(),              #args.max_res,
-            target_fps= nuke.thisNode().knob('FPS').getValue(),           #args.target_fps,
+            max_res=nuke.thisNode().knob('MaxRes').value(),              #args.max_res,
+            target_fps=nuke.thisNode().knob('FPS').value(),           #args.target_fps,
             seed= 42  ,                 #args.seed,
             track_time= False   ,    #args.track_time,
             save_npz= True,          #args.save_npz,
@@ -83,12 +83,12 @@ def CreateDCNode():
    
     s.addKnob(nuke.Text_Knob(''))
 
-    s.addKnob(nuke.Enumeration_Knob('CPUOFF_OPT', 'CPU Offload Options', ['Model', 'Sequential', 'None']))
-    s.addKnob(nuke.Array_Knob("FPS", 'Output Frame Rate'))
-    s.addKnob(nuke.Array_Knob("InferSteps", 'Inference Steps')) #NEED TO CREATE FUNCTION TO ROUND UP
+    s.addKnob(nuke.Enumeration_Knob('CPUOFF_OPT', 'CPU Offload Options', ['model', 'sequential', 'none']))
+    s.addKnob(nuke.Int_Knob("FPS", 'Output Frame Rate'))
+    s.addKnob(nuke.Int_Knob("InferSteps", 'Inference Steps')) #NEED TO CREATE FUNCTION TO ROUND UP
     s.addKnob(nuke.Double_Knob("CFG", 'Guidance scale'))
-    s.addKnob(nuke.Array_Knob("FrameNumber", 'Number of frame'))
-    s.addKnob(nuke.Array_Knob("MaxRes", 'Maximum Resolution'))
+    s.addKnob(nuke.Int_Knob("FrameNumber", 'Number of frame'))
+    s.addKnob(nuke.Int_Knob("MaxRes", 'Maximum Resolution'))
 
     s.addKnob(nuke.Text_Knob(' ', ''))
 
@@ -102,10 +102,10 @@ def CreateDCNode():
     # s.addKnob(nuke.Enumeration_Knob('FileType', 'File type', ['.exr', '.png', '.tiff']))
     
 ### SETTING RANGES, DEFAULT VALUES & FORMATING ###
-    s['FPS'].setValue(nuke.root().knob('fps').getValue()) #ADD ROOT FPS BY DEFAULT
+    s['FPS'].setValue(int(nuke.root().knob('fps').getValue())) #ADD ROOT FPS BY DEFAULT
     s['InferSteps'].setValue(25)
     s['CFG'].setValue(1.2)
-    s['FrameNumber'].setValue(getInputInfos.FrameNumber )
+    s['FrameNumber'].setValue(int(getInputInfos.FrameNumber))
     s['MaxRes'].setValue(1024)
 
     s['InferSteps'].setRange(1, 40)
@@ -122,13 +122,4 @@ def CreateDCNode():
     s['GenerateDepth'].setFlag(nuke.STARTLINE)
 
     print(nuke.thisNode().allKnobs())
-
-
-    
-
-    
-
-
-#m = nuke.menu('Nodes')
-#m = m.addCommand('DC', 'DepthCrafterAction()')
 
