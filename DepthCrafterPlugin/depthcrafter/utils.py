@@ -35,10 +35,16 @@ def read_video_frames(video_path, process_length, target_fps, max_res):
             frame = cv2.resize(frame, (width, height))
             frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)  # Convert BGR to RGB
             frames.append(frame.astype("float32") / 255.0)
+            
+       
+            
+       
         frame_count += 1
     cap.release()
 
     frames = np.array(frames)
+    
+        
     return frames, target_fps
 
 
@@ -46,6 +52,8 @@ def save_video(
     video_frames,
     output_video_path,
     fps: int = 15,
+    exr_out_path: str = '', 
+    exr_export: bool = False
 ) -> str:
     # a simple function to save video frames
     height, width = video_frames[0].shape[:2]
@@ -54,15 +62,22 @@ def save_video(
     video_writer = cv2.VideoWriter(
         output_video_path, fourcc, fps, (width, height), isColor=is_color
     )
-
+    frame_count = 1
     for frame in video_frames:
-        frame = (frame * 255).astype(np.uint8)
-        if is_color:
-            frame = cv2.cvtColor(frame, cv2.COLOR_RGB2BGR)
-        video_writer.write(frame)
+        
+        if exr_export :
+            cv2.imwrite(r'%s' % exr_out_path+"_"+str(frame_count)+"_depth.exr", frame.astype("float32"))
+            frame_count += 1
+        
+        else : 
+            frame = (frame * 255).astype(np.uint8)
+            if is_color:
+                frame = cv2.cvtColor(frame, cv2.COLOR_RGB2BGR)
+            video_writer.write(frame)
+        
 
-    video_writer.release()
-    return output_video_path
+            video_writer.release()
+            return output_video_path
 
 
 class ColorMapper:

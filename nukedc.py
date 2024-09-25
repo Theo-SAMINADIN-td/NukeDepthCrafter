@@ -1,7 +1,6 @@
 import nuke
 from DepthCrafterPlugin.utils import *
 from diffusers.training_utils import set_seed
-
 def getInputInfos():
     f = nuke.thisNode().dependencies()
     
@@ -64,12 +63,15 @@ def GenerateDepthAction():
             target_fps=nuke.thisNode().knob('FPS').value(),           #args.target_fps,
             seed= 42  ,                 #args.seed,
             track_time= False   ,    #args.track_time,
-            save_npz= True,          #args.save_npz,
+            save_npz= False,          #args.save_npz,
+            exr_export=nuke.thisNode().knob('ExrExport').value()
         )
+        
         # clear the cache for the next video
         gc.collect()
         torch.cuda.empty_cache()
         nuke.message('Render'+ video +' Done')
+
 
 
 
@@ -92,8 +94,12 @@ def CreateDCNode():
 
     s.addKnob(nuke.Text_Knob(' ', ''))
 
-    s.addKnob(nuke.PyScript_Knob('GenerateDepth', 'Generate Depth', 'GenerateDepthAction()'))
+    
     s.addKnob(nuke.File_Knob('OutputPath', 'Output Path'))
+    s.addKnob(nuke.PyScript_Knob('GenerateDepth', 'Generate Depth', 'GenerateDepthAction()'))
+    s.addKnob(nuke.Boolean_Knob('ExrExport', 'Export Exr'))
+    
+    
     
     # s.addKnob(nuke.Array_Knob("HeightInput", 'Height'))
     # s.addKnob(nuke.Array_Knob("WidthtInput", 'Width'))
