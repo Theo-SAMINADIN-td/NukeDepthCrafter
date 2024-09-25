@@ -1,6 +1,9 @@
 import nuke
 from DepthCrafterPlugin.utils import *
 from diffusers.training_utils import set_seed
+
+
+
 def getInputInfos():
     f = nuke.thisNode().dependencies()
     
@@ -26,12 +29,6 @@ def getInputInfos():
     
     
 
-        
-
-
-
-
-
 def UpdateBtn():
     getInputInfos()
 
@@ -46,7 +43,7 @@ def GenerateDepthAction():
     else :
         VideoExportBool = 0
     depthcrafter_demo = DepthCrafterDemo(
-        unet_path=r"C:\Users\Theo\.nuke\DepthCrafterPlugin",
+        unet_path=r".\DepthCrafterPlugin",
         pre_train_path="stabilityai/stable-video-diffusion-img2vid-xt",
         cpu_offload=nuke.thisNode().knob('CPUOFF_OPT').value(),
     )
@@ -104,11 +101,6 @@ def CreateDCNode():
     
     
     
-    # s.addKnob(nuke.Array_Knob("HeightInput", 'Height'))
-    # s.addKnob(nuke.Array_Knob("WidthtInput", 'Width'))
-    # s.addKnob(nuke.EvalString_Knob("OutputName", 'Output Name', ''))
-    # S.addKnob(nuke.Format_Knob("OutputFormat", 'OUtput Format'))
-    # s.addKnob(nuke.Enumeration_Knob('FileType', 'File type', ['.exr', '.png', '.tiff']))
     
 ### SETTING RANGES, DEFAULT VALUES, TOOLTIP & FORMATING ###
     s['FPS'].setValue(int(nuke.root().knob('fps').getValue())) #ADD ROOT FPS BY DEFAULT

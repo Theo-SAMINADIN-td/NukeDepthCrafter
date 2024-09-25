@@ -4,11 +4,6 @@ os.environ["OPENCV_IO_ENABLE_OPENEXR"]="1"
 import numpy as np
 import torch
 from diffusers.training_utils import set_seed
-import pkg_resources
-installed_packages = pkg_resources.working_set
-installed_packages_list = sorted(["%s==%s" % (i.key, i.version)
-   for i in installed_packages])
-print(installed_packages_list)
 from .depthcrafter.depth_crafter_ppl import DepthCrafterPipeline
 from .depthcrafter.unet import DiffusersUNetSpatioTemporalConditionModelDepthCrafter
 from .depthcrafter.utils import vis_sequence_depth, save_video, read_video_frames
