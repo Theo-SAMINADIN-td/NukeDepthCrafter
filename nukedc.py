@@ -110,7 +110,7 @@ def CreateDCNode():
     # S.addKnob(nuke.Format_Knob("OutputFormat", 'OUtput Format'))
     # s.addKnob(nuke.Enumeration_Knob('FileType', 'File type', ['.exr', '.png', '.tiff']))
     
-### SETTING RANGES, DEFAULT VALUES & FORMATING ###
+### SETTING RANGES, DEFAULT VALUES, TOOLTIP & FORMATING ###
     s['FPS'].setValue(int(nuke.root().knob('fps').getValue())) #ADD ROOT FPS BY DEFAULT
     s['InferSteps'].setValue(25)
     s['CFG'].setValue(1.2)
@@ -129,6 +129,15 @@ def CreateDCNode():
     s['MaxRes'].setFlag(nuke.STARTLINE)
     s['UpdatePath'].setFlag(nuke.STARTLINE)
     s['GenerateDepth'].setFlag(nuke.STARTLINE)
+    
+    s['CPUOFF_OPT'].setTooltip("To save memory, we can offload the model to CPU. Model is the default one, Sequential will be slower but save more memory")
+    s['FPS'].setTooltip("Target FPS for the output video")
+    s['InferSteps'].setTooltip("Number of inference steps")
+    s['CFG'].setTooltip("Guidance scale/CFG")
+    s['FrameNumber'].setTooltip("Number of frame to generate")
+    s['MaxRes'].setTooltip("Output resolution")
+    s['OutputPath'].setTooltip("path/to/your/folder/ Extension and filename are automaticly set to the selected file type and input file name ")
+    s['GenerateDepth'].setTooltip("Generate Depth")
 
     print(nuke.thisNode().allKnobs())
 
