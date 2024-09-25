@@ -1,5 +1,6 @@
 import gc
 import os
+import nuke
 os.environ["OPENCV_IO_ENABLE_OPENEXR"]="1"
 import numpy as np
 import torch
@@ -102,9 +103,13 @@ class DepthCrafterDemo:
         if save_npz:
             np.savez_compressed(save_path + ".npz", depth=res)
         
+        s = nuke.selectedNode()
+        
         if  video_export :
             save_video(res, save_path + "_depth.mp4", fps=target_fps, video_export= video_export)
-           
+            nuke.createNode('Read')
+            
+            nuke.selectedNode().knob('file').setValue(r"%s" % (save_path + "_depth.mp4"))
             return [
                 
                 
@@ -112,8 +117,11 @@ class DepthCrafterDemo:
             ]
         else :
             save_video(res, save_path, fps=target_fps, video_export= video_export)
+            nuke.createNode('Read')
             
-        
+            nuke.selectedNode().knob('file').setValue(r"%s" % (save_path + "_depth_#.exr"))
+            nuke.selectedNode().knob('first').setValue(1)
+            nuke.selectedNode().knob('last').setValue(int(nuke.root().knob('last_frame').getValue()))
 
     def run(
         self,
