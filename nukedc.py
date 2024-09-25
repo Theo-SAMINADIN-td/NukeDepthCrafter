@@ -38,12 +38,13 @@ def UpdateBtn():
 
 
 def GenerateDepthAction():
+ 
     if (nuke.thisNode().knob('FileType').value() == "mp4") :
         VideoExportBool = 1
     else :
         VideoExportBool = 0
     depthcrafter_demo = DepthCrafterDemo(
-        unet_path=r".\DepthCrafterPlugin",
+        unet_path=os.path.expandvars(r"C:\Users\$USERNAME\.nuke\DepthCrafterPlugin"),
         pre_train_path="stabilityai/stable-video-diffusion-img2vid-xt",
         cpu_offload=nuke.thisNode().knob('CPUOFF_OPT').value(),
     )
