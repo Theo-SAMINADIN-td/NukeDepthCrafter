@@ -108,7 +108,7 @@ class DepthCrafterDemo:
             np.savez_compressed(save_path + ".npz", depth=res)
         
         if  video_export :
-            save_video(res, save_path + "_depth_preview.mp4", fps=target_fps, video_export= video_export)
+            save_video(res, save_path + "_depth.mp4", fps=target_fps, video_export= video_export)
            
             return [
                 

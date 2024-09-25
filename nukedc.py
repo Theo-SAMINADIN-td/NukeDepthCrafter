@@ -41,7 +41,10 @@ def UpdateBtn():
 
 
 def GenerateDepthAction():
-    
+    if (nuke.thisNode().knob('FileType').value() == "mp4") :
+        VideoExportBool = 1
+    else :
+        VideoExportBool = 0
     depthcrafter_demo = DepthCrafterDemo(
         unet_path=r"C:\Users\Theo\.nuke\DepthCrafterPlugin",
         pre_train_path="stabilityai/stable-video-diffusion-img2vid-xt",
@@ -64,13 +67,13 @@ def GenerateDepthAction():
             seed= 42  ,                 #args.seed,
             track_time= False   ,    #args.track_time,
             save_npz= False,          #args.save_npz,
-            video_export=nuke.thisNode().knob('VideoExport').value()
+            video_export=VideoExportBool
         )
         
         # clear the cache for the next video
         gc.collect()
         torch.cuda.empty_cache()
-        nuke.message('Render'+ video +' Done')
+        nuke.message('Render ' + video + ' Done')
 
 
 
@@ -94,10 +97,10 @@ def CreateDCNode():
 
     s.addKnob(nuke.Text_Knob(' ', ''))
 
-    
+    s.addKnob(nuke.Enumeration_Knob('FileType', 'File type', ['exr', 'mp4']))
+
     s.addKnob(nuke.File_Knob('OutputPath', 'Output Path'))
     s.addKnob(nuke.PyScript_Knob('GenerateDepth', 'Generate Depth', 'GenerateDepthAction()'))
-    s.addKnob(nuke.Boolean_Knob('VideoExport', 'Export Preview Video'))
     
     
     
