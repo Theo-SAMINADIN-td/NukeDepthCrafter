@@ -70,12 +70,12 @@ def save_video(
                 frame = cv2.cvtColor(frame, cv2.COLOR_RGB2BGR)
             video_writer.write(frame)
         
-
+            
             video_writer.release()
             return output_video_path
         
         else : 
-            cv2.imwrite(r'%s' % output_video_path+"_"+str(frame_count)+"_depth.exr", frame.astype("float32"))
+            cv2.imwrite(r'%s' % output_video_path+"_depth"+"_"+str(f"{frame_count:04}")+".exr", frame.astype("float32"))
             frame_count += 1
 
 
