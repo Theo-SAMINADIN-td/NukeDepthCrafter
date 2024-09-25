@@ -68,7 +68,7 @@ class DepthCrafterDemo:
         seed: int = 42,
         track_time: bool = True,
         save_npz: bool = False,
-        exr_export: bool = False
+        video_export: bool = False
     ):
         set_seed(seed)
 
@@ -107,17 +107,17 @@ class DepthCrafterDemo:
         if save_npz:
             np.savez_compressed(save_path + ".npz", depth=res)
         
-        if  exr_export :
-            save_video(res, save_path, fps=target_fps, exr_out_path = save_path, exr_export= exr_export)
-        else :
-            
-            save_video(res, save_path + "_depth_preview.mp4", fps=target_fps)
+        if  video_export :
+            save_video(res, save_path + "_depth_preview.mp4", fps=target_fps, video_export= video_export)
            
             return [
                 
                 
                 save_path + "_depth.mp4",
             ]
+        else :
+            save_video(res, save_path, fps=target_fps, video_export= video_export)
+            
         
 
     def run(

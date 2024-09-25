@@ -64,7 +64,7 @@ def GenerateDepthAction():
             seed= 42  ,                 #args.seed,
             track_time= False   ,    #args.track_time,
             save_npz= False,          #args.save_npz,
-            exr_export=nuke.thisNode().knob('ExrExport').value()
+            video_export=nuke.thisNode().knob('VideoExport').value()
         )
         
         # clear the cache for the next video
@@ -79,7 +79,7 @@ def CreateDCNode():
     getInputInfos()
     nuke.createNode('NoOp')
     s = nuke.selectedNode()
-    s.knob('name').setValue('DepthCrafter2')
+    s.knob('name').setValue('DepthCrafter')
     s.addKnob(nuke.File_Knob('FilePath', 'File Path'))
     s.addKnob(nuke.PyScript_Knob('UpdatePath', 'Update Path', 'UpdateBtn()' ))
    
@@ -97,7 +97,7 @@ def CreateDCNode():
     
     s.addKnob(nuke.File_Knob('OutputPath', 'Output Path'))
     s.addKnob(nuke.PyScript_Knob('GenerateDepth', 'Generate Depth', 'GenerateDepthAction()'))
-    s.addKnob(nuke.Boolean_Knob('ExrExport', 'Export Exr'))
+    s.addKnob(nuke.Boolean_Knob('VideoExport', 'Export Preview Video'))
     
     
     

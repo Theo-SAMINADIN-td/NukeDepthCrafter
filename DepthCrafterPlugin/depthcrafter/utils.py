@@ -52,8 +52,7 @@ def save_video(
     video_frames,
     output_video_path,
     fps: int = 15,
-    exr_out_path: str = '', 
-    exr_export: bool = False
+    video_export: bool = False
 ) -> str:
     # a simple function to save video frames
     height, width = video_frames[0].shape[:2]
@@ -65,11 +64,7 @@ def save_video(
     frame_count = 1
     for frame in video_frames:
         
-        if exr_export :
-            cv2.imwrite(r'%s' % exr_out_path+"_"+str(frame_count)+"_depth.exr", frame.astype("float32"))
-            frame_count += 1
-        
-        else : 
+        if video_export :
             frame = (frame * 255).astype(np.uint8)
             if is_color:
                 frame = cv2.cvtColor(frame, cv2.COLOR_RGB2BGR)
@@ -78,6 +73,10 @@ def save_video(
 
             video_writer.release()
             return output_video_path
+        
+        else : 
+            cv2.imwrite(r'%s' % output_video_path+"_"+str(frame_count)+"_depth.exr", frame.astype("float32"))
+            frame_count += 1
 
 
 class ColorMapper:
