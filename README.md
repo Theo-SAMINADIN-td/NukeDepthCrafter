@@ -11,7 +11,8 @@ Adapted for Nuke by
 
 ## 💡 Extra feature
 
-- EXR Export
+- EXR Sequence export
+- DepthCrafter node
 
 ## 🗒️ Requirements
 According to [Nuke v15 Third-Party Libraries and Fonts](https://learn.foundry.com/nuke/content/misc/studio_third_party_libraries.html)
