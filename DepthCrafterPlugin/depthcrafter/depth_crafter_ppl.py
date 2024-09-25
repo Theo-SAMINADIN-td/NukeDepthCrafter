@@ -1,8 +1,8 @@
 from typing import Callable, Dict, List, Optional, Union
-
+import gc
 import numpy as np
 import torch
-
+import nuke
 from diffusers.pipelines.stable_video_diffusion.pipeline_stable_video_diffusion import (
     _resize_with_antialiasing,
     StableVideoDiffusionPipelineOutput,
@@ -254,9 +254,20 @@ class DepthCrafterPipeline(StableVideoDiffusionPipeline):
 
             video_latents_current = video_latents[:, idx_start:idx_end]
             video_embeddings_current = video_embeddings[:, idx_start:idx_end]
-
+            
             with self.progress_bar(total=num_inference_steps) as progress_bar:
+                renderProgress = nuke.ProgressTask('Generating depth...')
+                progIncr = 100.0 / len(timesteps)
                 for i, t in enumerate(timesteps):
+                    renderProgress.setProgress(int(i * progIncr))
+                    if renderProgress.isCancelled():
+                        
+                        gc.collect()
+                        torch.cuda.empty_cache()
+                        del renderProgress
+                        raise Exception("Generation aborted")
+                        
+                        
                     if latents_all is not None and i == 0:
                         latents[:, :overlap] = (
                             latents_all[:, -overlap:]
@@ -318,6 +329,7 @@ class DepthCrafterPipeline(StableVideoDiffusionPipeline):
                         (i + 1) > num_warmup_steps
                         and (i + 1) % self.scheduler.order == 0
                     ):
+                        
                         progress_bar.update()
 
             if latents_all is None:
