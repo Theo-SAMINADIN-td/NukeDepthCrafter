@@ -9,37 +9,38 @@ Adapted for Nuke by
 
 </div>
 
+## 💡 Extra feature
+
+- EXR Sequence export
+- DepthCrafter node
+
 ## 🗒️ Requirements
 According to [Nuke v15 Third-Party Libraries and Fonts](https://learn.foundry.com/nuke/content/misc/studio_third_party_libraries.html)
 
 Python 3.10.10
 <br><br>
 ## 🛠️ Installation
-<br></br>
-Clone this repo into your .nuke (by default C:\Users\\%UserProfile%\\.nuke) :
+### 1. Clone this repo into your .nuke (by default C:\Users\\%UserProfile%\\.nuke) :
 ```bash
 git clone https://github.com/Theo-SAMINADIN-td/NukeDepthCrafter.git
 ```
-<br>
-OR
+Or Download this repo as [ZIP file](https://github.com/Theo-SAMINADIN-td/NukeDepthCrafter/archive/refs/heads/main.zip) and extract it in your .nuke
 <br><br>
-Download this repo as ZIP file and extract it in your .nuke
 
-  <br><br>
-   Your tree should look like that <br><br>
+Your tree should look like that <br><br>
 ![Project file tree](https://github.com/user-attachments/assets/97a69ab8-bc80-4b43-a20b-ffe47e30da14)
 
 
 <br></br>
-Download the [Model from Tencent HF page](https://huggingface.co/tencent/DepthCrafter/blob/main/diffusion_pytorch_model.safetensors) and put it in C:\Users\\%UserProfile%\\.nuke\DepthCrafterPlugin
+### 2. Download the [Model from Tencent HF page](https://huggingface.co/tencent/DepthCrafter/blob/main/diffusion_pytorch_model.safetensors) and put it in C:\Users\\%UserProfile%\\.nuke\DepthCrafterPlugin
 
-<br><br>
-
-Install Dependencies :
+### 3. Install Dependencies :
 
 According to [Nuke v15 Third-Party Libraries and Fonts](https://learn.foundry.com/nuke/content/misc/studio_third_party_libraries.html)
-<br><br><br>
-Pytorch/Cuda and xformers version
+<br>
+<br>
+<br>
+Pytorch/Cuda and xformers
 <br>
 ```bash
 pip install torch==2.1.1+cu118 xformers --index-url https://download.pytorch.org/whl/cu118
@@ -54,3 +55,6 @@ In init.py add your PATH. Check it by typing System Environment Variables in you
 ```bash
 nuke.pluginAddPath("path/to/your/PATH")
 ```
+
+
+# 👌 Launch Nuke !
