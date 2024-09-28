@@ -119,7 +119,7 @@ class DepthCrafterDemo:
             save_video(res, save_path, fps=target_fps, video_export= video_export)
             nuke.createNode('Read')
             
-            nuke.selectedNode().knob('file').setValue(r"%s" % (save_path + "_depth_#.exr"))
+            nuke.selectedNode().knob('file').setValue(r"%s" % (save_path + "_depth_####.exr"))
             nuke.selectedNode().knob('first').setValue(1)
             nuke.selectedNode().knob('last').setValue(int(nuke.root().knob('last_frame').getValue()))
 
