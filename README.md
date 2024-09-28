@@ -1,4 +1,4 @@
-## ___***DepthCrafter for Nuke15***___
+## ___***DepthCrafter for Nuke***___
 <div align="center">
 
 [Depthcrafter by TENCENT](https://github.com/Tencent/DepthCrafter)
@@ -8,16 +8,23 @@ Adapted for Nuke by
 [Theo SAMINADIN](https://github.com/Theo-SAMINADIN-td)
 
 </div>
+<br><br>
+<div style="display: flex;">
+  <img src="images/Screenshot_Global.jpg"/>
+  <br><br>
+</div>
 
 ## 💡 Extra feature
 
 - EXR Sequence export
 - DepthCrafter node
 
+
 ## 🗒️ Requirements
 According to [Nuke v15 Third-Party Libraries and Fonts](https://learn.foundry.com/nuke/content/misc/studio_third_party_libraries.html)
 
-Python 3.10.10
+- Nuke 15 or higher (not tested on previous versions)
+- Python 3.10.10
 <br><br>
 ## 🛠️ Installation
 ### 1. Clone this repo into your .nuke (by default C:\Users\\%UserProfile%\\.nuke) :
@@ -27,11 +34,13 @@ git clone https://github.com/Theo-SAMINADIN-td/NukeDepthCrafter.git
 Or Download this repo as [ZIP file](https://github.com/Theo-SAMINADIN-td/NukeDepthCrafter/archive/refs/heads/main.zip) and extract it in your .nuke
 <br><br>
 
-Your tree should look like that <br><br>
-![Project file tree](https://github.com/user-attachments/assets/97a69ab8-bc80-4b43-a20b-ffe47e30da14)
+Your tree should look like that
+<br><br>
+<div style="display: flex;">
+  <img src="images/Tree.jpg"/>
+  <br><br>
+</div>
 
-
-<br></br>
 ### 2. Download the [Model from Tencent HF page](https://huggingface.co/tencent/DepthCrafter/blob/main/diffusion_pytorch_model.safetensors) and put it in C:\Users\\%UserProfile%\\.nuke\DepthCrafterPlugin
 
 ### 3. Install Dependencies :
