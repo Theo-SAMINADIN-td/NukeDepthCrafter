@@ -14,7 +14,7 @@ Adapted for Nuke by
   <br><br>
 </div>
 
-## 💡 Extra feature
+## 💡 Extra features
 
 - EXR Sequence export
 - DepthCrafter node
