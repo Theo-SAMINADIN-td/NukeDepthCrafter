@@ -8,7 +8,10 @@ Adapted for Nuke by
 [Theo SAMINADIN](https://github.com/Theo-SAMINADIN-td)
 
 </div>
-<br><br>
+ <br><br>
+
+DepthCrafter for Nuke allows you to generate temporally consistent Depth sequences inside Nuke. See more examples [here](https://github.com/Tencent/DepthCrafter?tab=readme-ov-file#-visualization)
+
 <div style="display: flex;">
   <img src="images/Screenshot_Global.jpg"/>
   <br><br>
