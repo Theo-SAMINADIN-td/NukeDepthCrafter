@@ -103,7 +103,6 @@ class DepthCrafterDemo:
         if save_npz:
             np.savez_compressed(save_path + ".npz", depth=res)
         
-        s = nuke.selectedNode()
         
         if  video_export :
             save_video(res, save_path + "_depth.mp4", fps=target_fps, video_export= video_export)
