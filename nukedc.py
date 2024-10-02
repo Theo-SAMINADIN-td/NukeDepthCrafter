@@ -54,7 +54,7 @@ def GenerateDepthAction():
     for video in video_paths:
         depthcrafter_demo.infer(
             video,
-            nuke.thisNode().knob('InferSteps').value(),                    # args.num_inference_steps,
+            int(nuke.thisNode().knob('InferSteps').value()),                    # args.num_inference_steps,
             nuke.thisNode().knob('CFG').value(),                    # args.guidance_scale,
             nuke.thisNode().knob('OutputPath').getValue(),       #args.save_folder,
             window_size= 110,       #args.window_size,
@@ -71,7 +71,7 @@ def GenerateDepthAction():
         # clear the cache for the next video
         gc.collect()
         torch.cuda.empty_cache()
-        nuke.message('Render ' + video + ' Done')
+        nuke.message('Generating depth for ' + video + ' Done')
 
 
 
