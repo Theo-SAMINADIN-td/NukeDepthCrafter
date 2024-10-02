@@ -46,7 +46,8 @@ Your tree should look like that
   <br><br>
 </div>
 
-### 2. Download the [Model from Tencent HF page](https://huggingface.co/tencent/DepthCrafter/blob/main/diffusion_pytorch_model.safetensors) and put it in C:\Users\\%UserProfile%\\.nuke\DepthCrafterPlugin
+### 2. Download the [Model from Tencent HF page](https://huggingface.co/tencent/DepthCrafter/blob/main/diffusion_pytorch_model.safetensors) and put it in .nuke\DepthCrafterPlugin
+
 
 ### 3. Install Dependencies :
 
@@ -69,6 +70,7 @@ In init.py add your PATH. Check it by typing System Environment Variables in you
 ```bash
 nuke.pluginAddPath("path/to/your/PATH")
 ```
-
+<br></br>
+***❗If your .nuke folder path is not C:\Users\\%UserProfile%\\.nuke, please change the [unet_path](https://github.com/Theo-SAMINADIN-td/NukeDepthCrafter/blob/b79dcefdee3c9c872723a90ef2688cfd33c03022/nukedc.py#L47C3-L47C4) by adding yours***
 
 # 👌 Launch Nuke !
