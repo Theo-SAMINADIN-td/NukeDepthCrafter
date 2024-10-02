@@ -4,4 +4,4 @@ nuke.pluginAddPath("menu")
 nuke.pluginAddPath(r".\DepthCrafterPlugin\icons")
 
 
-#nuke.pluginAddPath(r"path/to/your/PATH")
+#nuke.pluginAddPath(r"path/to/your/PATH/site-packages")
