@@ -9,3 +9,4 @@ uistate.ini
 /Workspaces
 /DepthCrafterPlugin/demo_output/*
 DepthCrafterPlugin/diffusion_pytorch_model.safetensors
+/DepthCrafterPlugin/depthcrafter/__pycache__
