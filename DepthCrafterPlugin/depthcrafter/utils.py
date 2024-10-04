@@ -6,7 +6,12 @@ import torch
 
 def read_video_frames(video_path, process_length, target_fps, max_res):
     # a simple function to read video frames
-    cap = cv2.VideoCapture(video_path)
+    
+    try :
+        cap = cv2.VideoCapture(video_path)
+    except :
+        cap = cv2.VideoCapture(video_path, cv2.CAP_IMAGES)
+    
     original_fps = cap.get(cv2.CAP_PROP_FPS)
     original_height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
     original_width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
