@@ -59,7 +59,8 @@ class DepthCrafterDemo:
         window_size: int = 110,
         process_length: int = 195,
         overlap: int = 25,
-        max_res: int = 1024,
+        height : int = 1080,
+        width : int = 1920,
         target_fps: int = 15,
         seed: int = 42,
         track_time: bool = True,
@@ -105,7 +106,7 @@ class DepthCrafterDemo:
         
         
         if  video_export :
-            save_video(res, save_path + "_depth.mp4", fps=target_fps, video_export= video_export)
+            save_video(res, save_path + "_depth.mp4", fps=target_fps, video_export= video_export, output_height=height, output_width=width)
             nuke.createNode('Read')
             
             nuke.selectedNode().knob('file').setValue(r"%s" % (save_path + "_depth.mp4"))
@@ -115,7 +116,7 @@ class DepthCrafterDemo:
                 save_path + "_depth.mp4",
             ]
         else :
-            save_video(res, save_path, fps=target_fps, video_export= video_export)
+            save_video(res, save_path, fps=target_fps, video_export= video_export, output_height=height, output_width=width)
             nuke.createNode('Read')
             
             nuke.selectedNode().knob('file').setValue(r"%s" % (save_path + "_depth_####.exr"))
@@ -127,14 +128,16 @@ class DepthCrafterDemo:
         input_video,
         num_denoising_steps,
         guidance_scale,
-        max_res=1024,
+        height=1080,
+        width=1920,
         process_length=195,
     ):
         res_path = self.infer(
             input_video,
             num_denoising_steps,
             guidance_scale,
-            max_res=max_res,
+            height=height,
+            width=width,
             process_length=process_length,
             
         )

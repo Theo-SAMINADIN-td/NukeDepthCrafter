@@ -331,7 +331,7 @@ class DepthCrafterPipeline(StableVideoDiffusionPipeline):
                     ):
                         
                         progress_bar.update()
-
+            del renderProgress
             if latents_all is None:
                 latents_all = latents.clone()
             else:

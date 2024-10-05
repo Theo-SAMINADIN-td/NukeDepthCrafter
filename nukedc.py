@@ -60,12 +60,14 @@ def GenerateDepthAction():
             window_size= 110,       #args.window_size,
             process_length=nuke.thisNode().knob('FrameNumber').value(),    #args.process_length,
             overlap= 25,              #args.overlap,
-            max_res=nuke.thisNode().knob('MaxRes').value(),              #args.max_res,
+            height=int(nuke.thisNode().knob('Height').value()),
+            width= int(nuke.thisNode().knob('Width').value()),              #args.max_res,
             target_fps=nuke.thisNode().knob('FPS').value(),           #args.target_fps,
-            seed= 42  ,                 #args.seed,
-            track_time= False   ,    #args.track_time,
+            seed= 42,                 #args.seed,
+            track_time= False,    #args.track_time,
             save_npz= False,          #args.save_npz,
-            video_export=VideoExportBool
+            video_export=VideoExportBool,
+            dataset=nuke.thisNode().knob('CPUOFF_OPT').value(),
         )
         
         # clear the cache for the next video
@@ -91,10 +93,11 @@ def CreateDCNode():
     s.addKnob(nuke.Int_Knob("InferSteps", 'Inference Steps')) #NEED TO CREATE FUNCTION TO ROUND UP
     s.addKnob(nuke.Double_Knob("CFG", 'Guidance scale'))
     s.addKnob(nuke.Int_Knob("FrameNumber", 'Number of frame'))
-    s.addKnob(nuke.Int_Knob("MaxRes", 'Maximum Resolution'))
-
+    s.addKnob(nuke.Int_Knob("Height", 'Height'))
+    s.addKnob(nuke.Int_Knob("Width", 'Width'))
+    
     s.addKnob(nuke.Text_Knob(' ', ''))
-
+    s.addKnob(nuke.Enumeration_Knob('Dataset_Select', 'Dataset', ["sintel","scannet","kitti","bonn","nyu", "open"]))
     s.addKnob(nuke.Enumeration_Knob('FileType', 'File type', ['exr', 'mp4']))
 
     s.addKnob(nuke.File_Knob('OutputPath', 'Output Path'))
@@ -108,7 +111,8 @@ def CreateDCNode():
     s['InferSteps'].setValue(25)
     s['CFG'].setValue(1.2)
     s['FrameNumber'].setValue(int(getInputInfos.FrameNumber))
-    s['MaxRes'].setValue(1024)
+    s['Height'].setValue(1080)
+    s['Width'].setValue(1920)
 
     s['InferSteps'].setRange(1, 40)
     s['CFG'].setRange(1, 20)
@@ -119,16 +123,19 @@ def CreateDCNode():
     s['InferSteps'].setFlag(nuke.STARTLINE)
     s['CFG'].setFlag(nuke.STARTLINE)
     s['FrameNumber'].setFlag(nuke.STARTLINE)
-    s['MaxRes'].setFlag(nuke.STARTLINE)
+    s['Height'].setFlag(nuke.STARTLINE)
+    s['Width'].setFlag(nuke.STARTLINE)
     s['UpdatePath'].setFlag(nuke.STARTLINE)
     s['GenerateDepth'].setFlag(nuke.STARTLINE)
+    s['Dataset_Select'].setFlag(nuke.STARTLINE)
     
     s['CPUOFF_OPT'].setTooltip("To save memory, we can offload the model to CPU. Model is the default one, Sequential will be slower but save more memory")
     s['FPS'].setTooltip("Target FPS for the output video")
     s['InferSteps'].setTooltip("Number of inference steps")
     s['CFG'].setTooltip("Guidance scale/CFG")
     s['FrameNumber'].setTooltip("Number of frame to generate")
-    s['MaxRes'].setTooltip("Output resolution")
+    s['Height'].setTooltip("Video output height")
+    s['Width'].setTooltip("Video output width")
     s['OutputPath'].setTooltip("path/to/your/folder/ Extension and filename are automaticly set to the selected file type and input file name ")
     s['GenerateDepth'].setTooltip("Generate Depth")
 

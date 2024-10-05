@@ -3,8 +3,15 @@ import cv2
 import matplotlib.cm as cm
 import torch
 
+dataset_res_dict = {
+    "sintel":[448, 1024],
+    "scannet":[640, 832],
+    "kitti":[384, 1280],
+    "bonn":[512, 640],
+    "nyu":[448, 640],
+}
 
-def read_video_frames(video_path, process_length, target_fps, max_res):
+def read_video_frames(video_path, process_length, target_fps, dataset):
     # a simple function to read video frames
     
     try :
@@ -15,15 +22,22 @@ def read_video_frames(video_path, process_length, target_fps, max_res):
     original_fps = cap.get(cv2.CAP_PROP_FPS)
     original_height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
     original_width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
+    
+    frame_height = round(original_height / 64) * 64
+    frame_width = round(original_width / 64) * 64
     # round the height and width to the nearest multiple of 64
-    height = round(original_height / 64) * 64
-    width = round(original_width / 64) * 64
+    if dataset=="open":        
+        height = round(original_height / 64) * 64
+        width = round(original_width / 64) * 64
+    else:
+        height = dataset_res_dict[dataset][0]
+        width = dataset_res_dict[dataset][1]   
 
-    # resize the video if the height or width is larger than max_res
-    if max(height, width) > max_res:
-        scale = max_res / max(original_height, original_width)
-        height = round(original_height * scale / 64) * 64
-        width = round(original_width * scale / 64) * 64
+    # # resize the video if the height or width is larger than max_res
+    # if max(height, width) > max_res:
+    #     scale = max_res / max(original_height, original_width)
+    #     height = round(original_height * scale / 64) * 64
+    #     width = round(original_width * scale / 64) * 64
 
     if target_fps < 0:
         target_fps = original_fps
@@ -37,7 +51,7 @@ def read_video_frames(video_path, process_length, target_fps, max_res):
         if not ret or (process_length > 0 and frame_count >= process_length):
             break
         if frame_count % stride == 0:
-            frame = cv2.resize(frame, (width, height))
+            frame = cv2.resize(frame, (frame_width, frame_height))
             frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)  # Convert BGR to RGB
             frames.append(frame.astype("float32") / 255.0)
             
@@ -57,7 +71,9 @@ def save_video(
     video_frames,
     output_video_path,
     fps: int = 15,
-    video_export: bool = False
+    video_export: bool = False,
+    output_height: int = 1080,
+    output_width: int = 1920
 ) -> str:
     # a simple function to save video frames
     height, width = video_frames[0].shape[:2]
@@ -68,7 +84,7 @@ def save_video(
     )
     frame_count = 1
     for frame in video_frames:
-        
+        frame = cv2.resize(frame, (output_width, output_height))
         if video_export :
             frame = (frame * 255).astype(np.uint8)
             if is_color:
