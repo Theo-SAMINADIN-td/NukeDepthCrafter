@@ -54,8 +54,8 @@ Your tree should look like that
 
 #### A. Checking Python version
 <br> Open your Command Prompt and type ```Python``` and hit Enter. 
-<br>If your python version is 3.10.10 go to [next step](https://github.com/Theo-SAMINADIN-td/NukeDepthCrafter?tab=readme-ov-file#a-checking-python-version). If it's not, Go to the System Environment Variables in your start menu > Environment Variables > "Path" Variable > hit "Edit".
-<br><br>If you see the paths to Python310 & Python310/Script, move them to the top. Go to the [next step](https://github.com/Theo-SAMINADIN-td/NukeDepthCrafter?tab=readme-ov-file#a-checking-python-version)
+<br>If your python version is 3.10.10 go to [next step](https://github.com/Theo-SAMINADIN-td/NukeDepthCrafter?tab=readme-ov-file#b-environment-choices). If it's not, Go to the System Environment Variables in your start menu > Environment Variables > "Path" Variable > hit "Edit".
+<br><br>If you see the paths to Python310 & Python310/Script, move them to the top. Go to the [next step](https://github.com/Theo-SAMINADIN-td/NukeDepthCrafter?tab=readme-ov-file#b-environment-choices)
 
 <br><br>If you don't see them, 
 - Option 1: Install or reinstall [Python 3.10.10](https://www.python.org/downloads/release/python-31010/) with "Add Python to environment variables" checked. You should now see in Environment Variables, Paths to Python310.
@@ -75,16 +75,9 @@ In the Command Prompt type: ```python -m venv /path/to/new/virtual/environment``
   Go to the [next step](https://github.com/Theo-SAMINADIN-td/NukeDepthCrafter?tab=readme-ov-file#c-dependencies-installation)
 <br><br>
 #### C. Dependencies installation
-According to [Nuke v15 Third-Party Libraries and Fonts](https://learn.foundry.com/nuke/content/misc/studio_third_party_libraries.html)
 <br>
 <br>
 <br>
-Pytorch/Cuda and xformers
-<br>
-```bash
-pip install torch==2.1.1+cu118 xformers --index-url https://download.pytorch.org/whl/cu118
-```
-Then
 ```bash
 pip install -r path/to/.nuke/DepthCrafterPlugin/requirements.txt
 ```
