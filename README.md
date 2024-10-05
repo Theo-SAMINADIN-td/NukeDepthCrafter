@@ -75,10 +75,10 @@ In the Command Prompt type: ```python -m venv /path/to/new/virtual/environment``
   Go to the [next step](https://github.com/Theo-SAMINADIN-td/NukeDepthCrafter?tab=readme-ov-file#c-dependencies-installation)
 <br><br>
 #### C. Dependencies installation
-<br>
-<br>
-<br>
-```bash
+</br>
+
+
+```bash 
 pip install -r path/to/.nuke/DepthCrafterPlugin/requirements.txt
 ```
 Referring to [requirements.txt](https://github.com/Theo-SAMINADIN-td/NukeDepthCrafter/blob/main/DepthCrafterPlugin/requirements.txt)
