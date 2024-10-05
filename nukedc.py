@@ -1,6 +1,6 @@
 import nuke
 from DepthCrafterPlugin.utils import *
-from diffusers.training_utils import set_seed
+
 
 
 
@@ -36,44 +36,63 @@ def UpdateBtn():
     
     nuke.thisNode().knob('FilePath').setValue(FilePath)
 
-
 def GenerateDepthAction():
- 
-    if (nuke.thisNode().knob('FileType').value() == "mp4") :
-        VideoExportBool = 1
-    else :
-        VideoExportBool = 0
-    depthcrafter_demo = DepthCrafterDemo(
-        unet_path=os.path.expandvars(r"C:\Users\$USERNAME\.nuke\DepthCrafterPlugin"),
-        pre_train_path="stabilityai/stable-video-diffusion-img2vid-xt",
-        cpu_offload=nuke.thisNode().knob('CPUOFF_OPT').value(),
-    )
-    # process the videos, the video paths are separated by comma
-    video_paths = [nuke.thisNode().knob('FilePath').getValue()]
-    #args.video_path.split(",")
-    for video in video_paths:
-        depthcrafter_demo.infer(
-            video,
-            int(nuke.thisNode().knob('InferSteps').value()),                    # args.num_inference_steps,
-            nuke.thisNode().knob('CFG').value(),                    # args.guidance_scale,
-            nuke.thisNode().knob('OutputPath').getValue(),       #args.save_folder,
-            window_size= 110,       #args.window_size,
-            process_length=nuke.thisNode().knob('FrameNumber').value(),    #args.process_length,
-            overlap= 25,              #args.overlap,
-            height=int(nuke.thisNode().knob('Height').value()),
-            width= int(nuke.thisNode().knob('Width').value()),              #args.max_res,
-            target_fps=nuke.thisNode().knob('FPS').value(),           #args.target_fps,
-            seed= 42,                 #args.seed,
-            track_time= False,    #args.track_time,
-            save_npz= False,          #args.save_npz,
-            video_export=VideoExportBool,
-            dataset=nuke.thisNode().knob('Dataset_Select').value(),
-        )
-        
-        # clear the cache for the next video
-        gc.collect()
-        torch.cuda.empty_cache()
-        nuke.message('Generating depth for ' + video + ' Done')
+    if nuke.ask('<h3> Your generation settings : </h3>'+ "\n" 
+                + "<hr class='solid'>"+ "\n" 
+                "<b>Input Path : </b>" + str(nuke.thisNode().knob('FilePath').getValue()) + "\n"
+                + "<hr class='solid'>"+ "\n" 
+                "<b>Inference Steps: </b>" + str(int(nuke.thisNode().knob('InferSteps').value())) + "\n"
+                "<b>Guidance Scale: </b>" + str(nuke.thisNode().knob('CFG').value()) + "\n"
+                "<b>Number of frames: </b>" + str(nuke.thisNode().knob('FrameNumber').value()) + "\n"
+                + "<hr class='solid'>"+ "\n" 
+                "<b>Output Height: </b>" + str(int(nuke.thisNode().knob('Height').value())) + "\n"
+                "<b>Output Width: </b>" + str(int(nuke.thisNode().knob('Width').value())) +  "\n"
+                + "<hr class='solid'>"+ "\n" 
+                "<b>Targeted FPS: </b>" + str(nuke.thisNode().knob('FPS').value()) + "\n"
+                + "<hr class='solid'>"+ "\n" 
+                "<b>Output file type: </b>" + str(nuke.thisNode().knob('FileType').value()) + "\n"
+                "<b>Dataset: </b>" + str(nuke.thisNode().knob('Dataset_Select').value()) +"\n"
+                + "<hr class='solid'>"+ "\n" 
+                "<b>Output Path:  </b>" + str(nuke.thisNode().knob('OutputPath').getValue()) + "\n"
+                + "<hr class='solid'>" + "\n"+ 
+                "<h3 align='right'> <font size='3'>Launch generation ? </h3>"
+    
+    ):                      
+            if (nuke.thisNode().knob('FileType').value() == "mp4") :
+                VideoExportBool = 1
+            else :
+                VideoExportBool = 0
+            depthcrafter_demo = DepthCrafterDemo(
+                unet_path=os.path.expandvars(r"C:\Users\$USERNAME\.nuke\DepthCrafterPlugin"),
+                pre_train_path="stabilityai/stable-video-diffusion-img2vid-xt",
+                cpu_offload=nuke.thisNode().knob('CPUOFF_OPT').value(),
+            )
+            # process the videos, the video paths are separated by comma
+            video_paths = [nuke.thisNode().knob('FilePath').getValue()]
+            #args.video_path.split(",")
+            for video in video_paths:
+                depthcrafter_demo.infer(
+                    video,
+                    int(nuke.thisNode().knob('InferSteps').value()),                    # args.num_inference_steps,
+                    nuke.thisNode().knob('CFG').value(),                    # args.guidance_scale,
+                    nuke.thisNode().knob('OutputPath').getValue(),       #args.save_folder,
+                    window_size= 110,       #args.window_size,
+                    process_length=nuke.thisNode().knob('FrameNumber').value(),    #args.process_length,
+                    overlap= 25,              #args.overlap,
+                    height=int(nuke.thisNode().knob('Height').value()),
+                    width= int(nuke.thisNode().knob('Width').value()),              #args.max_res,
+                    target_fps=nuke.thisNode().knob('FPS').value(),           #args.target_fps,
+                    seed= 42,                 #args.seed,
+                    track_time= False,    #args.track_time,
+                    save_npz= False,          #args.save_npz,
+                    video_export=VideoExportBool,
+                    dataset=nuke.thisNode().knob('Dataset_Select').value(),
+                )
+                
+                # clear the cache for the next video
+                gc.collect()
+                torch.cuda.empty_cache()
+                nuke.message('Generating depth for ' + video + ' Done')
 
 
 
@@ -138,6 +157,6 @@ def CreateDCNode():
     s['Width'].setTooltip("Video output width")
     s['OutputPath'].setTooltip("path/to/your/folder/ Extension and filename are automaticly set to the selected file type and input file name ")
     s['GenerateDepth'].setTooltip("Generate Depth")
-
+    s['Dataset_Select'].setTooltip("Select the Dataset Resolution which your generation will be generate from")
     print(nuke.thisNode().allKnobs())
 
