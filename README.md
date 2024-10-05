@@ -21,6 +21,7 @@ https://github.com/user-attachments/assets/8038df8c-59b7-4a61-ad8b-9af4590e46dc
 
 ## 💡 Extra features
 
+- Support ImgtoImg, ImgtoVid, VidtoVid, VidtoImg
 - EXR Sequence export
 - DepthCrafter node
 
