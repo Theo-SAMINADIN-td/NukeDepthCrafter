@@ -65,12 +65,13 @@ class DepthCrafterDemo:
         seed: int = 42,
         track_time: bool = True,
         save_npz: bool = False,
-        video_export: bool = False
+        video_export: bool = False,
+        dataset: str = "open"
     ):
         set_seed(seed)
 
         frames, target_fps = read_video_frames(
-            video, process_length, target_fps, max_res
+            video, process_length, target_fps, dataset=dataset,
         )
         
         print(f"==> video name: {video}, frames shape: {frames.shape}")
@@ -87,6 +88,7 @@ class DepthCrafterDemo:
                 window_size=window_size,
                 overlap=overlap,
                 track_time=track_time,
+                
             ).frames[0]
         # convert the three-channel output to a single channel depth map
         res = res.sum(-1) / res.shape[-1]

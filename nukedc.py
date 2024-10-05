@@ -67,7 +67,7 @@ def GenerateDepthAction():
             track_time= False,    #args.track_time,
             save_npz= False,          #args.save_npz,
             video_export=VideoExportBool,
-            dataset=nuke.thisNode().knob('CPUOFF_OPT').value(),
+            dataset=nuke.thisNode().knob('Dataset_Select').value(),
         )
         
         # clear the cache for the next video
@@ -95,11 +95,11 @@ def CreateDCNode():
     s.addKnob(nuke.Int_Knob("FrameNumber", 'Number of frame'))
     s.addKnob(nuke.Int_Knob("Height", 'Height'))
     s.addKnob(nuke.Int_Knob("Width", 'Width'))
+    s.addKnob(nuke.Enumeration_Knob('Dataset_Select', 'Dataset', ["open","sintel","scannet","kitti","bonn","nyu"]))
     
     s.addKnob(nuke.Text_Knob(' ', ''))
-    s.addKnob(nuke.Enumeration_Knob('Dataset_Select', 'Dataset', ["sintel","scannet","kitti","bonn","nyu", "open"]))
+   
     s.addKnob(nuke.Enumeration_Knob('FileType', 'File type', ['exr', 'mp4']))
-
     s.addKnob(nuke.File_Knob('OutputPath', 'Output Path'))
     s.addKnob(nuke.PyScript_Knob('GenerateDepth', 'Generate Depth', 'GenerateDepthAction()'))
     

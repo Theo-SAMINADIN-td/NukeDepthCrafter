@@ -79,10 +79,6 @@ class DepthCrafterPipeline(StableVideoDiffusionPipeline):
                 f"Expected `video` to be a `torch.Tensor` or `VideoReader`, but got a {type(video)}"
             )
 
-        if height % 8 != 0 or width % 8 != 0:
-            raise ValueError(
-                f"`height` and `width` have to be divisible by 8 but are {height} and {width}."
-            )
 
     @torch.no_grad()
     def __call__(

@@ -23,15 +23,13 @@ def read_video_frames(video_path, process_length, target_fps, dataset):
     original_height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
     original_width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
     
-    frame_height = round(original_height / 64) * 64
-    frame_width = round(original_width / 64) * 64
     # round the height and width to the nearest multiple of 64
     if dataset=="open":        
-        height = round(original_height / 64) * 64
-        width = round(original_width / 64) * 64
+        frame_height = round(original_height / 64) * 64
+        frame_width = round(original_width / 64) * 64
     else:
-        height = dataset_res_dict[dataset][0]
-        width = dataset_res_dict[dataset][1]   
+        frame_height = dataset_res_dict[dataset][0]
+        frame_width = dataset_res_dict[dataset][1]   
 
     # # resize the video if the height or width is larger than max_res
     # if max(height, width) > max_res:
