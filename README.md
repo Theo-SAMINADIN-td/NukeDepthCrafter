@@ -17,7 +17,11 @@ DepthCrafter for Nuke allows you to generate temporally consistent Depth sequenc
   <br><br>
 </div>
 
-https://github.com/user-attachments/assets/8038df8c-59b7-4a61-ad8b-9af4590e46dc
+
+https://github.com/user-attachments/assets/9414b4e5-d731-4d60-bf90-3f574fe03a24
+
+
+
 
 ## 💡 Extra features
 
