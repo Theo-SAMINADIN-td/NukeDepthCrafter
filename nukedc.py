@@ -169,7 +169,7 @@ def CreateDCNode():
     s['FrameNumber'].setTooltip("Number of frame to generate")
     s['Height'].setTooltip("Video output height")
     s['Width'].setTooltip("Video output width")
-    s['OutputPath'].setTooltip("path/to/your/folder/ Extension and filename are automaticly set to the selected file type and input file name ")
+    s['OutputPath'].setTooltip("path/to/your/file.ext to create a image sequence add #### or ### ")
     s['GenerateDepth'].setTooltip("Generate Depth")
     s['Dataset_Select'].setTooltip("Select the Dataset Resolution which your generation will be generate from")
 
