@@ -83,6 +83,7 @@ Pytorch/Cuda and xformers
 ```bash
 pip install torch==2.0.1+cu118 xformers==0.0.20 --index-url https://download.pytorch.org/whl/cu118
 ```
+<br>
 ```bash
 pip install -r path/to/.nuke/DepthCrafterPlugin/requirements.txt
 ```
