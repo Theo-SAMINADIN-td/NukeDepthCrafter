@@ -78,6 +78,11 @@ In the Command Prompt type: ```python -m venv /path/to/new/virtual/environment``
 <br>
 <br>
 <br>
+Pytorch/Cuda and xformers
+<br>
+```bash
+pip install torch==2.0.1+cu118 xformers==0.0.20 --index-url https://download.pytorch.org/whl/cu118
+```
 ```bash
 pip install -r path/to/.nuke/DepthCrafterPlugin/requirements.txt
 ```
