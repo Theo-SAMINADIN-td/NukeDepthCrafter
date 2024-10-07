@@ -37,6 +37,20 @@ def UpdateBtn():
     nuke.thisNode().knob('FilePath').setValue(FilePath)
 
 def GenerateDepthAction():
+    # Checking file name
+    Output_path = nuke.thisNode().knob('OutputPath').getValue()
+    if str(os.path.splitext(os.path.basename(Output_path)[0])) == '' :
+        raise TypeError("Your must assign a file name")
+    
+    if ("%04d" not in Output_path and nuke.thisNode()['FileType'].value() == "exr")  :       
+        raise TypeError("Your file must contains '####' or '###'")
+    
+    
+    
+    if os.path.exists(Output_path) :
+       if not nuke.ask("Overwrite existing "+ Output_path +" ?") :
+         nuke.thisNode()['OutputPath'].setValue("")
+        
     if nuke.ask('<h3> Your generation settings : </h3>'+ "\n" 
                 + "<hr class='solid'>"+ "\n" 
                 "<b>Input Path : </b>" + str(nuke.thisNode().knob('FilePath').getValue()) + "\n"
@@ -67,24 +81,24 @@ def GenerateDepthAction():
                 pre_train_path="stabilityai/stable-video-diffusion-img2vid-xt",
                 cpu_offload=nuke.thisNode().knob('CPUOFF_OPT').value(),
             )
-            # process the videos, the video paths are separated by comma
+            # process the video
             video_paths = [nuke.thisNode().knob('FilePath').getValue()]
-            #args.video_path.split(",")
+            
             for video in video_paths:
                 depthcrafter_demo.infer(
                     video,
-                    int(nuke.thisNode().knob('InferSteps').value()),                    # args.num_inference_steps,
+                    int(nuke.thisNode().knob('InferSteps').value()),        # args.num_inference_steps,
                     nuke.thisNode().knob('CFG').value(),                    # args.guidance_scale,
-                    nuke.thisNode().knob('OutputPath').getValue(),       #args.save_folder,
-                    window_size= 110,       #args.window_size,
+                    nuke.thisNode().knob('OutputPath').getValue(),          #args.save_folder,
+                    window_size= 110,                                       #args.window_size,
                     process_length=nuke.thisNode().knob('FrameNumber').value(),    #args.process_length,
-                    overlap= 25,              #args.overlap,
+                    overlap= 25,                                            #args.overlap,
                     height=int(nuke.thisNode().knob('Height').value()),
-                    width= int(nuke.thisNode().knob('Width').value()),              #args.max_res,
-                    target_fps=nuke.thisNode().knob('FPS').value(),           #args.target_fps,
-                    seed= 42,                 #args.seed,
-                    track_time= False,    #args.track_time,
-                    save_npz= False,          #args.save_npz,
+                    width= int(nuke.thisNode().knob('Width').value()),      #args.max_res,
+                    target_fps=nuke.thisNode().knob('FPS').value(),         #args.target_fps,
+                    seed= 42,                                               #args.seed,
+                    track_time= False,                                      #args.track_time,
+                    save_npz= False,                                        #args.save_npz,
                     video_export=VideoExportBool,
                     dataset=nuke.thisNode().knob('Dataset_Select').value(),
                 )
@@ -109,7 +123,7 @@ def CreateDCNode():
 
     s.addKnob(nuke.Enumeration_Knob('CPUOFF_OPT', 'CPU Offload Options', ['model', 'sequential', 'none']))
     s.addKnob(nuke.Int_Knob("FPS", 'Output Frame Rate'))
-    s.addKnob(nuke.Int_Knob("InferSteps", 'Inference Steps')) #NEED TO CREATE FUNCTION TO ROUND UP
+    s.addKnob(nuke.Int_Knob("InferSteps", 'Inference Steps'))
     s.addKnob(nuke.Double_Knob("CFG", 'Guidance scale'))
     s.addKnob(nuke.Int_Knob("FrameNumber", 'Number of frame'))
     s.addKnob(nuke.Int_Knob("Height", 'Height'))
@@ -158,5 +172,5 @@ def CreateDCNode():
     s['OutputPath'].setTooltip("path/to/your/folder/ Extension and filename are automaticly set to the selected file type and input file name ")
     s['GenerateDepth'].setTooltip("Generate Depth")
     s['Dataset_Select'].setTooltip("Select the Dataset Resolution which your generation will be generate from")
-    print(nuke.thisNode().allKnobs())
+
 

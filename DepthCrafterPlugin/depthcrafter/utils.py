@@ -2,7 +2,7 @@ import numpy as np
 import cv2
 import matplotlib.cm as cm
 import torch
-
+import os
 dataset_res_dict = {
     "sintel":[448, 1024],
     "scannet":[640, 832],
@@ -30,12 +30,6 @@ def read_video_frames(video_path, process_length, target_fps, dataset):
     else:
         frame_height = dataset_res_dict[dataset][0]
         frame_width = dataset_res_dict[dataset][1]   
-
-    # # resize the video if the height or width is larger than max_res
-    # if max(height, width) > max_res:
-    #     scale = max_res / max(original_height, original_width)
-    #     height = round(original_height * scale / 64) * 64
-    #     width = round(original_width * scale / 64) * 64
 
     if target_fps < 0:
         target_fps = original_fps
@@ -74,52 +68,45 @@ def save_video(
     output_width: int = 1920
 ) -> str:
     # a simple function to save video frames
-    height, width = video_frames[0].shape[:2]
+    
+    output_size = (output_width , output_height)
+    
+    resized_vid = cv2.resize(video_frames[0], output_size, interpolation=cv2.INTER_AREA)
+    height, width = resized_vid.shape[:2]
     is_color = video_frames[0].ndim == 3
     fourcc = cv2.VideoWriter_fourcc(*"mp4v")
     video_writer = cv2.VideoWriter(
         output_video_path, fourcc, fps, (width, height), isColor=is_color
     )
     frame_count = 1
+    output_video_path_folder = os.path.dirname(output_video_path)
+    output_file_name = str(os.path.splitext(os.path.basename(output_video_path))[0])
     for frame in video_frames:
-        frame = cv2.resize(frame, (output_width, output_height))
+            
+        frame = cv2.resize(frame, output_size, interpolation=cv2.INTER_AREA )
         if video_export :
+            
             frame = (frame * 255).astype(np.uint8)
             if is_color:
                 frame = cv2.cvtColor(frame, cv2.COLOR_RGB2BGR)
             video_writer.write(frame)
         
             
-            video_writer.release()
+            video_writer.release() 
             return output_video_path
         
         else : 
-            cv2.imwrite(r'%s' % output_video_path+"_depth"+"_"+str(f"{frame_count:04}")+".exr", frame.astype("float32"))
+            
+            try :     
+                if "%04d" in output_video_path :
+                    save_path = os.path.join(
+                        
+                        output_video_path_folder, output_file_name.replace('%04d', str(f"{frame_count:04}")))
+                    
+                if "%03d" in output_video_path :
+                    save_path = os.path.join(
+                    output_video_path_folder, output_file_name.replace('%04d', str(f"{frame_count:03}")))
+            except :
+                TypeError("Image sequence should be path/to/img_#### or path/to/img_###")
+            cv2.imwrite(r'%s' % save_path +".exr", frame.astype("float32"))
             frame_count += 1
-
-
-class ColorMapper:
-    # a color mapper to map depth values to a certain colormap
-    def __init__(self, colormap: str = "inferno"):
-        self.colormap = torch.tensor(cm.get_cmap(colormap).colors)
-
-    def apply(self, image: torch.Tensor, v_min=None, v_max=None):
-        # assert len(image.shape) == 2
-        if v_min is None:
-            v_min = image.min()
-        if v_max is None:
-            v_max = image.max()
-        image = (image - v_min) / (v_max - v_min)
-        image = (image * 255).long()
-        image = self.colormap[image]
-        return image
-
-
-def vis_sequence_depth(depths: np.ndarray, v_min=None, v_max=None):
-    visualizer = ColorMapper()
-    if v_min is None:
-        v_min = depths.min()
-    if v_max is None:
-        v_max = depths.max()
-    res = visualizer.apply(torch.tensor(depths), v_min=v_min, v_max=v_max).numpy()
-    return res

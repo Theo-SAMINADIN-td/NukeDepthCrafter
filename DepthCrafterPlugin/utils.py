@@ -7,7 +7,7 @@ import torch
 from diffusers.training_utils import set_seed
 from .depthcrafter.depth_crafter_ppl import DepthCrafterPipeline
 from .depthcrafter.unet import DiffusersUNetSpatioTemporalConditionModelDepthCrafter
-from .depthcrafter.utils import vis_sequence_depth, save_video, read_video_frames
+from .depthcrafter.utils import save_video, read_video_frames
  
 
 class DepthCrafterDemo:
@@ -95,23 +95,19 @@ class DepthCrafterDemo:
         # normalize the depth map to [0, 1] across the whole video
         res = (res - res.min()) / (res.max() - res.min())
         
-      
-        # visualize the depth map and save the results
-        #vis = vis_sequence_depth(res)
         # save the depth map and visualization with the target FPS
-        save_path = os.path.join(
-            save_folder, os.path.splitext(os.path.basename(video))[0]
-        )
+        save_path = save_folder
+        
         os.makedirs(os.path.dirname(save_path), exist_ok=True)
         if save_npz:
             np.savez_compressed(save_path + ".npz", depth=res)
         
         
         if  video_export :
-            save_video(res, save_path + "_depth.mp4", fps=target_fps, video_export= video_export, output_height=height, output_width=width)
+            save_video(res, save_path, fps=target_fps, video_export= video_export, output_height=height, output_width=width)
             nuke.createNode('Read')
             
-            nuke.selectedNode().knob('file').setValue(r"%s" % (save_path + "_depth.mp4"))
+            nuke.selectedNode().knob('file').setValue(r"%s" % (save_path))
             return [
                 
                 
@@ -119,11 +115,19 @@ class DepthCrafterDemo:
             ]
         else :
             save_video(res, save_path, fps=target_fps, video_export= video_export, output_height=height, output_width=width)
-            nuke.createNode('Read')
-            
-            nuke.selectedNode().knob('file').setValue(r"%s" % (save_path + "_depth_####.exr"))
-            nuke.selectedNode().knob('first').setValue(1)
-            nuke.selectedNode().knob('last').setValue(int(nuke.root().knob('last_frame').getValue()))
+            try :
+                nuke.createNode('Read')
+                if "%04d" in save_folder :
+                    nuke.selectedNode().knob('file').setValue(r"%s" % str(os.path.dirname(save_path)) +"/"+
+                                                                            str(os.path.splitext(os.path.basename(save_path.replace('%04d', '####')))[0]) +".exr")
+                elif "%03d" in save_folder :
+                    nuke.selectedNode().knob('file').setValue(r"%s" % str(os.path.dirname(save_path))+"/"+
+                                                                            str(os.path.splitext(os.path.basename(save_path.replace('%03d', '###')))[0]) +".exr")
+                nuke.selectedNode().knob('first').setValue(1)
+                nuke.selectedNode().knob('last').setValue(int(nuke.root().knob('last_frame').getValue())) 
+            except :
+                TypeError('Error creating read node')
+                
 
     def run(
         self,
