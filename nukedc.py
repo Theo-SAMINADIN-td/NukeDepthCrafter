@@ -1,123 +1,181 @@
 import nuke
+import os
 from DepthCrafterPlugin.utils import *
+import threading
+from DepthCrafterPlugin.depthcrafter.utils import video_extensions, img_extensions
+
+nuke.tprint('Current thread : ' +str(threading.current_thread().name) )
 
 
 
+class InputInfos :
+    read = None
+    FrameNumber = None
+    path = None
 
-def getInputInfos():
-    f = nuke.thisNode().dependencies()
-    
-    try :
-
-        for i in f:
-            getInputInfos.read = i
-
-
+    @classmethod
+    def getInputInfos(cls):
+        f = nuke.thisNode().dependencies()
+        
         try :
-            getInputInfos.FrameNumber = getInputInfos.read.knob('last').getValue()
-        except : 
-            getInputInfos.FrameNumber = nuke.root().knob('last_frame').getValue()
+
+            for i in f:
+                cls.read = i
 
 
-        try :
-            getInputInfos.path = getInputInfos.read.knob('file').getValue()
+            try :
+                cls.FrameNumber = cls.read.knob('last').getValue()
+            except : 
+                cls.FrameNumber = nuke.root().knob('last_frame').getValue()
+
+
+            try :
+                cls.path = cls.read.knob('file').getValue()
+            except : 
+                cls.path = ''
         except : 
-            getInputInfos.path = ''
-    except : 
-        getInputInfos.FrameNumber = nuke.root().knob('last_frame').getValue()
-        getInputInfos.path = ''
+            cls.FrameNumber = nuke.root().knob('last_frame').getValue()
+            cls.path = ''
     
     
+    
 
-def UpdateBtn():
-    getInputInfos()
+def UpdatePath():
+    InputInfos.getInputInfos()
 
-    FilePath = getInputInfos.path
+    FilePath = InputInfos.path
     
     nuke.thisNode().knob('FilePath').setValue(FilePath)
 
-def GenerateDepthAction():
-    # Checking file name
-    Output_path = nuke.thisNode().knob('OutputPath').getValue()
-    if str(os.path.splitext(os.path.basename(Output_path)[0])) == '' :
-        raise TypeError("Your must assign a file name")
-    
-    if ("%04d" not in Output_path and nuke.thisNode()['FileType'].value() == "exr")  :       
-        raise TypeError("Your file must contains '####' or '###'")
-    
-    
-    
-    if os.path.exists(Output_path) :
-       if not nuke.ask("Overwrite existing "+ Output_path +" ?") :
-         nuke.thisNode()['OutputPath'].setValue("")
-        
-    if nuke.ask('<h3> Your generation settings : </h3>'+ "\n" 
-                + "<hr class='solid'>"+ "\n" 
-                "<b>Input Path : </b>" + str(nuke.thisNode().knob('FilePath').getValue()) + "\n"
-                + "<hr class='solid'>"+ "\n" 
-                "<b>Inference Steps: </b>" + str(int(nuke.thisNode().knob('InferSteps').value())) + "\n"
-                "<b>Guidance Scale: </b>" + str(nuke.thisNode().knob('CFG').value()) + "\n"
-                "<b>Number of frames: </b>" + str(nuke.thisNode().knob('FrameNumber').value()) + "\n"
-                + "<hr class='solid'>"+ "\n" 
-                "<b>Output Height: </b>" + str(int(nuke.thisNode().knob('Height').value())) + "\n"
-                "<b>Output Width: </b>" + str(int(nuke.thisNode().knob('Width').value())) +  "\n"
-                + "<hr class='solid'>"+ "\n" 
-                "<b>Targeted FPS: </b>" + str(nuke.thisNode().knob('FPS').value()) + "\n"
-                + "<hr class='solid'>"+ "\n" 
-                "<b>Output file type: </b>" + str(nuke.thisNode().knob('FileType').value()) + "\n"
-                "<b>Dataset: </b>" + str(nuke.thisNode().knob('Dataset_Select').value()) +"\n"
-                + "<hr class='solid'>"+ "\n" 
-                "<b>Output Path:  </b>" + str(nuke.thisNode().knob('OutputPath').getValue()) + "\n"
-                + "<hr class='solid'>" + "\n"+ 
-                "<h3 align='right'> <font size='3'>Launch generation ? </h3>"
-    
-    ):                      
-            if (nuke.thisNode().knob('FileType').value() == "mp4") :
-                VideoExportBool = 1
-            else :
-                VideoExportBool = 0
-            depthcrafter_demo = DepthCrafterDemo(
-                unet_path=os.path.expandvars(r"C:\Users\$USERNAME\.nuke\DepthCrafterPlugin"),
-                pre_train_path="stabilityai/stable-video-diffusion-img2vid-xt",
-                cpu_offload=nuke.thisNode().knob('CPUOFF_OPT').value(),
-            )
-            # process the video
-            video_paths = [nuke.thisNode().knob('FilePath').getValue()]
-            
-            for video in video_paths:
-                depthcrafter_demo.infer(
-                    video,
-                    int(nuke.thisNode().knob('InferSteps').value()),        # args.num_inference_steps,
-                    nuke.thisNode().knob('CFG').value(),                    # args.guidance_scale,
-                    nuke.thisNode().knob('OutputPath').getValue(),          #args.save_folder,
-                    window_size= 110,                                       #args.window_size,
-                    process_length=nuke.thisNode().knob('FrameNumber').value(),    #args.process_length,
-                    overlap= 25,                                            #args.overlap,
-                    height=int(nuke.thisNode().knob('Height').value()),
-                    width= int(nuke.thisNode().knob('Width').value()),      #args.max_res,
-                    target_fps=nuke.thisNode().knob('FPS').value(),         #args.target_fps,
-                    seed= 42,                                               #args.seed,
-                    track_time= False,                                      #args.track_time,
-                    save_npz= False,                                        #args.save_npz,
-                    video_export=VideoExportBool,
-                    dataset=nuke.thisNode().knob('Dataset_Select').value(),
-                )
-                
-                # clear the cache for the next video
-                gc.collect()
-                torch.cuda.empty_cache()
-                nuke.message('Generating depth for ' + video + ' Done')
 
+
+class GenerateDepth :
+    unet_path = None
+    pre_train_path = None
+    cpu_offload = None
+    video_paths = None
+    infer_steps = None
+    guid_scale = None
+    Output_path = None
+    process_length = None
+    height = None
+    width = None
+    target_fps = None
+    video_export = None
+    dataset = None                
+                   
+                   
+    def GenerateDepthAction():
+        
+        Output_path = nuke.thisNode().knob('OutputPath').getValue()
+        # Checking file name
+                    
+        if str(os.path.splitext(os.path.basename(Output_path))[0]) == '' :
+            
+            raise TypeError("You must assign a file name")
+            
+        if any(nuke.thisNode()['FilePath'].value().lower().endswith(ext) for ext in video_extensions) == False and any(nuke.thisNode()['FilePath'].value().lower().endswith(ext) for ext in img_extensions) == False :
+            
+            raise TypeError('Unsupported input format. Input must be: '+ str(video_extensions) + ' or ' + str(img_extensions))
+            
+
+        if ("%04d"not in Output_path and nuke.thisNode()['FileType'].value() == "exr")  :       
+            
+            if ("%03d"not in Output_path)  :       
+                raise TypeError("Your file must contains '####' or '###'")
+        
+    
+        if os.path.exists(Output_path) :
+            if not nuke.ask("Overwrite existing "+ Output_path +" ?") :
+                nuke.thisNode()['OutputPath'].setValue("")       
+                
+        if nuke.ask('<h3> Your generation settings : </h3>'+ "\n" 
+                    + "<hr class='solid'>"+ "\n" 
+                    "<b>Input Path : </b>" + str(nuke.thisNode().knob('FilePath').getValue()) + "\n"
+                    + "<hr class='solid'>"+ "\n" 
+                    "<b>Inference Steps: </b>" + str(int(nuke.thisNode().knob('InferSteps').value())) + "\n"
+                    "<b>Guidance Scale: </b>" + str(nuke.thisNode().knob('CFG').value()) + "\n"
+                    "<b>Number of frames: </b>" + str(nuke.thisNode().knob('FrameNumber').value()) + "\n"
+                    + "<hr class='solid'>"+ "\n" 
+                    "<b>Output Height: </b>" + str(int(nuke.thisNode().knob('Height').value())) + "\n"
+                    "<b>Output Width: </b>" + str(int(nuke.thisNode().knob('Width').value())) +  "\n"
+                    + "<hr class='solid'>"+ "\n" 
+                    "<b>Targeted FPS: </b>" + str(nuke.thisNode().knob('FPS').value()) + "\n"
+                    + "<hr class='solid'>"+ "\n" 
+                    "<b>Output file type: </b>" + str(nuke.thisNode().knob('FileType').value()) + "\n"
+                    "<b>Dataset: </b>" + str(nuke.thisNode().knob('Dataset_Select').value()) +"\n"
+                    + "<hr class='solid'>"+ "\n" 
+                    "<b>Output Path:  </b>" + str(nuke.thisNode().knob('OutputPath').getValue()) + "\n"
+                    + "<hr class='solid'>" + "\n"+ 
+                    "<h3 align='right'> <font size='3'>Launch generation ? </h3>"
+        
+        ):                      
+                if (nuke.thisNode().knob('FileType').value() == "mp4") :
+                    VideoExportBool = 1
+                else :
+                    VideoExportBool = 0
+                depthcrafter_demo = DepthCrafterDemo(
+                    unet_path=os.path.join(os.path.dirname(__file__), "DepthCrafterPlugin"),
+                    pre_train_path="stabilityai/stable-video-diffusion-img2vid-xt",
+                    cpu_offload=nuke.thisNode().knob('CPUOFF_OPT').value(),
+                )
+                # process the video
+                video_paths = [nuke.thisNode().knob('FilePath').getValue()]
+                
+                for video in video_paths:
+                    video = video
+                    num_denoising_steps = int(nuke.thisNode().knob('InferSteps').value())          # args.num_inference_steps,
+                    guidance_scale = nuke.thisNode().knob('CFG').value()                        # args.guidance_scale,
+                    save_folder = nuke.thisNode().knob('OutputPath').getValue()                 #args.save_folder,
+                    window_size= 110                                                           #args.window_size,
+                    process_length=nuke.thisNode().knob('FrameNumber').value()                  #args.process_length,
+                    overlap= 25                                                                 #args.overlap,
+                    height=int(nuke.thisNode().knob('Height').value())
+                    width= int(nuke.thisNode().knob('Width').value())                          #args.max_res,
+                    target_fps=nuke.thisNode().knob('FPS').value()                              #args.target_fps,
+                    seed= 42                                             #args.seed,
+                    track_time= False                                      #args.track_time,
+                    save_npz= False                                       #args.save_npz,
+                    video_export=VideoExportBool
+                    dataset=nuke.thisNode().knob('Dataset_Select').value()
+                    
+                    # create child thread on Inference mode
+                    childThread = threading.Thread(target=depthcrafter_demo.infer, args=(
+                        
+                        video,
+                        num_denoising_steps,       
+                        guidance_scale,                 
+                        save_folder,        
+                        window_size,                                
+                        process_length,   
+                        overlap,                                            
+                        height,
+                        width,     
+                        target_fps,       
+                        seed,                                              
+                        track_time,                                   
+                        save_npz,                                       
+                        video_export,
+                        dataset,
+                        
+                    ))
+                    
+                    # starting child thread
+                    childThread.start()
+                    
+                    gc.collect()
+                    torch.cuda.empty_cache()
+                    
 
 
 
 def CreateDCNode():
-    getInputInfos()
+    InputInfos.getInputInfos()
     nuke.createNode('NoOp')
     s = nuke.selectedNode()
     s.knob('name').setValue('DepthCrafter')
     s.addKnob(nuke.File_Knob('FilePath', 'File Path'))
-    s.addKnob(nuke.PyScript_Knob('UpdatePath', 'Update Path', 'UpdateBtn()' ))
+    s.addKnob(nuke.PyScript_Knob('UpdatePath', 'Update Path', 'UpdatePath()' ))
    
     s.addKnob(nuke.Text_Knob(''))
 
@@ -134,7 +192,7 @@ def CreateDCNode():
    
     s.addKnob(nuke.Enumeration_Knob('FileType', 'File type', ['exr', 'mp4']))
     s.addKnob(nuke.File_Knob('OutputPath', 'Output Path'))
-    s.addKnob(nuke.PyScript_Knob('GenerateDepth', 'Generate Depth', 'GenerateDepthAction()'))
+    s.addKnob(nuke.PyScript_Knob('GenerateDepth', 'Generate Depth', 'GenerateDepth.GenerateDepthAction()'))
     
     
     
@@ -143,7 +201,7 @@ def CreateDCNode():
     s['FPS'].setValue(int(nuke.root().knob('fps').getValue())) #ADD ROOT FPS BY DEFAULT
     s['InferSteps'].setValue(25)
     s['CFG'].setValue(1.2)
-    s['FrameNumber'].setValue(int(getInputInfos.FrameNumber))
+    s['FrameNumber'].setValue(int(InputInfos.FrameNumber))
     s['Height'].setValue(1080)
     s['Width'].setValue(1920)
 

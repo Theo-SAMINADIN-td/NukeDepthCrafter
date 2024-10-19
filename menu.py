@@ -1,4 +1,4 @@
-from nukedc import UpdateBtn, CreateDCNode, GenerateDepthAction
+from nukedc import CreateDCNode, UpdatePath, GenerateDepth
 
 
 m = nuke.menu('Nodes')

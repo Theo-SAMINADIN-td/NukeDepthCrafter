@@ -1,8 +1,8 @@
 import numpy as np
 import cv2
-import matplotlib.cm as cm
-import torch
 import os
+import nuke
+
 dataset_res_dict = {
     "sintel":[448, 1024],
     "scannet":[640, 832],
@@ -11,13 +11,23 @@ dataset_res_dict = {
     "nyu":[448, 640],
 }
 
+
+video_extensions = {'.mp4', '.mov',}
+img_extensions = { '.jpeg', '.jpg', '.png', '.tiff', '.tif'}
+
+
 def read_video_frames(video_path, process_length, target_fps, dataset):
     # a simple function to read video frames
+    nuke.tprint('Reading frames : ' +str(video_path) )
     
-    try :
+    
+    if any(video_path.lower().endswith(ext) for ext in video_extensions) :
         cap = cv2.VideoCapture(video_path)
-    except :
+    elif any(video_path.lower().endswith(ext) for ext in img_extensions) :
         cap = cv2.VideoCapture(video_path, cv2.CAP_IMAGES)
+    else :
+        raise TypeError('Unsupported input format. Input must be: '+ str(video_extensions) + ' or ' + str(img_extensions))
+    
     
     original_fps = cap.get(cv2.CAP_PROP_FPS)
     original_height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
@@ -55,7 +65,7 @@ def read_video_frames(video_path, process_length, target_fps, dataset):
 
     frames = np.array(frames)
     
-        
+    
     return frames, target_fps
 
 
@@ -68,32 +78,32 @@ def save_video(
     output_width: int = 1920
 ) -> str:
     # a simple function to save video frames
-    
+    nuke.tprint('Saving files...' )
     output_size = (output_width , output_height)
+    
+    output_video_path_folder = os.path.dirname(output_video_path) + "/"
+    output_file_name = str(os.path.splitext(os.path.basename(output_video_path))[0])
+    clean_path = os.path.join(output_video_path_folder, output_file_name)+".mp4"
     
     resized_vid = cv2.resize(video_frames[0], output_size, interpolation=cv2.INTER_AREA)
     height, width = resized_vid.shape[:2]
     is_color = video_frames[0].ndim == 3
     fourcc = cv2.VideoWriter_fourcc(*"mp4v")
     video_writer = cv2.VideoWriter(
-        output_video_path, fourcc, fps, (width, height), isColor=is_color
+       clean_path, fourcc, fps, (width, height), isColor=is_color
     )
     frame_count = 1
-    output_video_path_folder = os.path.dirname(output_video_path)
-    output_file_name = str(os.path.splitext(os.path.basename(output_video_path))[0])
+    
+    
+    nuke.tprint("Writing...")
     for frame in video_frames:
-            
         frame = cv2.resize(frame, output_size, interpolation=cv2.INTER_AREA )
         if video_export :
             
             frame = (frame * 255).astype(np.uint8)
             if is_color:
                 frame = cv2.cvtColor(frame, cv2.COLOR_RGB2BGR)
-            video_writer.write(frame)
-        
-            
-            video_writer.release() 
-            return output_video_path
+            video_writer.write(frame)           
         
         else : 
             
@@ -105,8 +115,15 @@ def save_video(
                     
                 if "%03d" in output_video_path :
                     save_path = os.path.join(
-                    output_video_path_folder, output_file_name.replace('%04d', str(f"{frame_count:03}")))
+                    output_video_path_folder, output_file_name.replace('%03d', str(f"{frame_count:03}")))
             except :
-                TypeError("Image sequence should be path/to/img_#### or path/to/img_###")
+                raise TypeError("Image sequence should be path/to/img_#### or path/to/img_###")
             cv2.imwrite(r'%s' % save_path +".exr", frame.astype("float32"))
-            frame_count += 1
+        frame_count += 1
+    
+    nuke.tprint("Writing done")
+    if video_export :
+        video_writer.release() 
+        return output_video_path
+        
+     

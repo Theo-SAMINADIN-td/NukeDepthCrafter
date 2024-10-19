@@ -2,8 +2,11 @@ import gc
 import os
 import nuke
 os.environ["OPENCV_IO_ENABLE_OPENEXR"]="1"
+
+import threading
 import numpy as np
 import torch
+
 from diffusers.training_utils import set_seed
 from .depthcrafter.depth_crafter_ppl import DepthCrafterPipeline
 from .depthcrafter.unet import DiffusersUNetSpatioTemporalConditionModelDepthCrafter
@@ -16,7 +19,8 @@ class DepthCrafterDemo:
         unet_path: str,
         pre_train_path: str,
         cpu_offload: str = "model",
-    ):
+    ):    
+ 
         unet = DiffusersUNetSpatioTemporalConditionModelDepthCrafter.from_pretrained(
             unet_path,
             subfolder="unet",
@@ -68,14 +72,16 @@ class DepthCrafterDemo:
         video_export: bool = False,
         dataset: str = "open"
     ):
+        nuke.tprint('Entering Inference mode')
+        nuke.tprint('Current thread : ' +str(threading.current_thread().name) )
         set_seed(seed)
-
+        
         frames, target_fps = read_video_frames(
             video, process_length, target_fps, dataset=dataset,
         )
         
         print(f"==> video name: {video}, frames shape: {frames.shape}")
-        
+        nuke.tprint('Starting Inference')
         # inference the depth map using the DepthCrafter pipeline
         with torch.inference_mode():
             res = self.pipe(
@@ -98,36 +104,56 @@ class DepthCrafterDemo:
         # save the depth map and visualization with the target FPS
         save_path = save_folder
         
+        # Saving in Nuke main thread to save the output
+        nuke.executeInMainThread(DepthCrafterDemo.saveOutput, args=(video, save_path, res, target_fps, video_export, height, width, save_npz))
+        
+     
+        
+        
+        
+    
+    def saveOutput(video, save_path, res, target_fps, video_export, height, width, save_npz):
+        
+        
+        nuke.tprint("Entered Thread : " + str(threading.current_thread().name))
+            
         os.makedirs(os.path.dirname(save_path), exist_ok=True)
+        
+        output_video_path_folder = os.path.dirname(save_path) + "/"
+        output_file_name = str(os.path.splitext(os.path.basename(save_path))[0])
+        clean_path = os.path.join(output_video_path_folder, output_file_name)+".mp4"
+    
         if save_npz:
-            np.savez_compressed(save_path + ".npz", depth=res)
+            np.savez_compressed(save_path + ".npz", depth=res)       
         
-        
+
         if  video_export :
             save_video(res, save_path, fps=target_fps, video_export= video_export, output_height=height, output_width=width)
             nuke.createNode('Read')
             
-            nuke.selectedNode().knob('file').setValue(r"%s" % (save_path))
-            return [
+            nuke.selectedNode().knob('file').setValue(r"%s" % (clean_path))
+            nuke.selectedNode().knob('first').setValue(1)
+            nuke.selectedNode().knob('last').setValue(int(nuke.root().knob('last_frame').getValue())) 
+            nuke.message("Generating depth done") 
                 
-                
-                save_path + "_depth.mp4",
-            ]
+    
+             
         else :
             save_video(res, save_path, fps=target_fps, video_export= video_export, output_height=height, output_width=width)
             try :
                 nuke.createNode('Read')
-                if "%04d" in save_folder :
+                if "%04d" in save_path :
                     nuke.selectedNode().knob('file').setValue(r"%s" % str(os.path.dirname(save_path)) +"/"+
                                                                             str(os.path.splitext(os.path.basename(save_path.replace('%04d', '####')))[0]) +".exr")
-                elif "%03d" in save_folder :
+                elif "%03d" in save_path :
                     nuke.selectedNode().knob('file').setValue(r"%s" % str(os.path.dirname(save_path))+"/"+
                                                                             str(os.path.splitext(os.path.basename(save_path.replace('%03d', '###')))[0]) +".exr")
                 nuke.selectedNode().knob('first').setValue(1)
                 nuke.selectedNode().knob('last').setValue(int(nuke.root().knob('last_frame').getValue())) 
             except :
                 TypeError('Error creating read node')
-                
+            nuke.message('Generating depth done')       
+                  
 
     def run(
         self,
