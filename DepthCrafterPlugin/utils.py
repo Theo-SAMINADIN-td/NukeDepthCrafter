@@ -10,8 +10,7 @@ import torch
 from diffusers.training_utils import set_seed
 from .depthcrafter.depth_crafter_ppl import DepthCrafterPipeline
 from .depthcrafter.unet import DiffusersUNetSpatioTemporalConditionModelDepthCrafter
-from .depthcrafter.utils import save_video, read_video_frames
- 
+from .depthcrafter.utils import save_video, read_video_frames, EXRsequences , img_extensions
 
 class DepthCrafterDemo:
     def __init__(
@@ -70,18 +69,23 @@ class DepthCrafterDemo:
         track_time: bool = True,
         save_npz: bool = False,
         video_export: bool = False,
-        dataset: str = "open"
+        dataset: str = "open",
+        frame_range: list = [0, 1]
     ):
         nuke.tprint('Entering Inference mode')
         nuke.tprint('Current thread : ' +str(threading.current_thread().name) )
         set_seed(seed)
-        
-        frames, target_fps = read_video_frames(
-            video, process_length, target_fps, dataset=dataset,
+        if any(video.lower().endswith(ext) for ext in img_extensions):
+            frames, target_fps, frame_start = EXRsequences(video, frame_range[0], frame_range[1], 24, dataset).ReadSequence()
+        else : 
+            frames, target_fps = read_video_frames(
+                video, process_length, target_fps, dataset=dataset,
         )
         
         print(f"==> video name: {video}, frames shape: {frames.shape}")
         nuke.tprint('Starting Inference')
+        nuke.tprint(frames.shape)
+
         # inference the depth map using the DepthCrafter pipeline
         with torch.inference_mode():
             res = self.pipe(
@@ -105,14 +109,14 @@ class DepthCrafterDemo:
         save_path = save_folder
         
         # Saving in Nuke main thread to save the output
-        nuke.executeInMainThread(DepthCrafterDemo.saveOutput, args=(video, save_path, res, target_fps, video_export, height, width, save_npz))
+        nuke.executeInMainThread(DepthCrafterDemo.saveOutput, args=(video, save_path, res, target_fps, video_export, height, width, save_npz, frame_start))
         
      
         
         
         
     
-    def saveOutput(video, save_path, res, target_fps, video_export, height, width, save_npz):
+    def saveOutput(video, save_path, res, target_fps, video_export, height, width, save_npz, frame_start):
         
         
         nuke.tprint("Entered Thread : " + str(threading.current_thread().name))
@@ -139,7 +143,7 @@ class DepthCrafterDemo:
     
              
         else :
-            save_video(res, save_path, fps=target_fps, video_export= video_export, output_height=height, output_width=width)
+            save_video(res, save_path, fps=target_fps, video_export= video_export, output_height=height, output_width=width, frame_start = frame_start)
             try :
                 nuke.createNode('Read')
                 if "%04d" in save_path :

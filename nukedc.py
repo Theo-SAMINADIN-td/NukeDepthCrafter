@@ -63,7 +63,7 @@ class GenerateDepth :
     target_fps = None
     video_export = None
     dataset = None                
-                   
+    frame_range = None               
                    
     def GenerateDepthAction():
         
@@ -114,10 +114,14 @@ class GenerateDepth :
                     VideoExportBool = 1
                 else :
                     VideoExportBool = 0
+                if nuke.thisNode().knob('CPUOFF_OPT').value() == 'None':
+                    cpu_opt = None
+                else : 
+                    cpu_opt = nuke.thisNode().knob('CPUOFF_OPT').value()
                 depthcrafter_demo = DepthCrafterDemo(
                     unet_path=os.path.join(os.path.dirname(__file__), "DepthCrafterPlugin"),
                     pre_train_path="stabilityai/stable-video-diffusion-img2vid-xt",
-                    cpu_offload=nuke.thisNode().knob('CPUOFF_OPT').value(),
+                    cpu_offload=cpu_opt,
                 )
                 # process the video
                 video_paths = [nuke.thisNode().knob('FilePath').getValue()]
@@ -138,6 +142,7 @@ class GenerateDepth :
                     save_npz= False                                       #args.save_npz,
                     video_export=VideoExportBool
                     dataset=nuke.thisNode().knob('Dataset_Select').value()
+                    frame_range = [int(nuke.thisNode().knob('FrameRangeMin').value()) , int((nuke.thisNode().knob('FrameRangeMax').value()+ 1))]
                     
                     # create child thread on Inference mode
                     childThread = threading.Thread(target=depthcrafter_demo.infer, args=(
@@ -157,6 +162,7 @@ class GenerateDepth :
                         save_npz,                                       
                         video_export,
                         dataset,
+                        frame_range
                         
                     ))
                     
@@ -179,11 +185,13 @@ def CreateDCNode():
    
     s.addKnob(nuke.Text_Knob(''))
 
-    s.addKnob(nuke.Enumeration_Knob('CPUOFF_OPT', 'CPU Offload Options', ['model', 'sequential', 'none']))
+    s.addKnob(nuke.Enumeration_Knob('CPUOFF_OPT', 'CPU Offload Options', ['model', 'sequential', 'None']))
     s.addKnob(nuke.Int_Knob("FPS", 'Output Frame Rate'))
     s.addKnob(nuke.Int_Knob("InferSteps", 'Inference Steps'))
     s.addKnob(nuke.Double_Knob("CFG", 'Guidance scale'))
     s.addKnob(nuke.Int_Knob("FrameNumber", 'Number of frame'))
+    s.addKnob(nuke.Int_Knob("FrameRangeMin", 'Frame Range'))
+    s.addKnob(nuke.Int_Knob("FrameRangeMax", ' '))
     s.addKnob(nuke.Int_Knob("Height", 'Height'))
     s.addKnob(nuke.Int_Knob("Width", 'Width'))
     s.addKnob(nuke.Enumeration_Knob('Dataset_Select', 'Dataset', ["open","sintel","scannet","kitti","bonn","nyu"]))
@@ -193,7 +201,52 @@ def CreateDCNode():
     s.addKnob(nuke.Enumeration_Knob('FileType', 'File type', ['exr', 'mp4']))
     s.addKnob(nuke.File_Knob('OutputPath', 'Output Path'))
     s.addKnob(nuke.PyScript_Knob('GenerateDepth', 'Generate Depth', 'GenerateDepth.GenerateDepthAction()'))
+    s.addKnob(nuke.nuke.PythonCustomKnob('KnobChanged', 'Knob Change', '''nuke.thisNode().knob("knobChanged").setValue("""
+
+if "exr" in nuke.thisNode().knob("FilePath").value(): 
+
+    nuke.thisNode().knob("FrameRangeMin").setEnabled(True)
+    nuke.thisNode().knob("FrameRangeMax").setEnabled(True)	
+    nuke.thisNode().knob("FrameNumber").setEnabled(False) 
+
+elif "png" in nuke.thisNode().knob("FilePath").value(): 
+
+    nuke.thisNode().knob("FrameRangeMin").setEnabled(True)
+    nuke.thisNode().knob("FrameRangeMax").setEnabled(True)	
+    nuke.thisNode().knob("FrameNumber").setEnabled(False) 
+
+elif "tiff" in nuke.thisNode().knob("FilePath").value(): 
+
+    nuke.thisNode().knob("FrameRangeMin").setEnabled(True)
+    nuke.thisNode().knob("FrameRangeMax").setEnabled(True)	
+    nuke.thisNode().knob("FrameNumber").setEnabled(False) 
+
+elif "tif" in nuke.thisNode().knob("FilePath").value(): 
+
+    nuke.thisNode().knob("FrameRangeMin").setEnabled(True)
+    nuke.thisNode().knob("FrameRangeMax").setEnabled(True)	
+    nuke.thisNode().knob("FrameNumber").setEnabled(False) 
+
+elif "jpeg" in nuke.thisNode().knob("FilePath").value(): 
+
+    nuke.thisNode().knob("FrameRangeMin").setEnabled(True)
+    nuke.thisNode().knob("FrameRangeMax").setEnabled(True)	
+    nuke.thisNode().knob("FrameNumber").setEnabled(False) 
     
+elif "jpg" in nuke.thisNode().knob("FilePath").value(): 
+
+    nuke.thisNode().knob("FrameRangeMin").setEnabled(True)
+    nuke.thisNode().knob("FrameRangeMax").setEnabled(True)	
+    nuke.thisNode().knob("FrameNumber").setEnabled(False) 
+
+else :
+    nuke.thisNode().knob("FrameNumber").setEnabled(True) 
+    nuke.thisNode().knob("FrameRangeMin").setEnabled(False)
+    nuke.thisNode().knob("FrameRangeMax").setEnabled(False)	
+                                    
+    """)
+'''
+    ) )
     
     
     
@@ -214,6 +267,7 @@ def CreateDCNode():
     s['InferSteps'].setFlag(nuke.STARTLINE)
     s['CFG'].setFlag(nuke.STARTLINE)
     s['FrameNumber'].setFlag(nuke.STARTLINE)
+    s['FrameRangeMax'].clearFlag(nuke.STARTLINE)
     s['Height'].setFlag(nuke.STARTLINE)
     s['Width'].setFlag(nuke.STARTLINE)
     s['UpdatePath'].setFlag(nuke.STARTLINE)
@@ -229,6 +283,13 @@ def CreateDCNode():
     s['Width'].setTooltip("Video output width")
     s['OutputPath'].setTooltip("path/to/your/file.ext to create a image sequence add #### or ### ")
     s['GenerateDepth'].setTooltip("Generate Depth")
-    s['Dataset_Select'].setTooltip("Select the Dataset Resolution which your generation will be generate from")
+    s['Dataset_Select'].setTooltip("""Select the Dataset Resolution which your generation will be generate from 
+                                   
+sintel: 448x1024
+scannet: 640x832
+kitti: 384x1280
+bonn: 512x640
+nyu: 448x640
+                                   """)
 
 

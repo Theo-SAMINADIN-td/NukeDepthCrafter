@@ -2,7 +2,7 @@ import numpy as np
 import cv2
 import os
 import nuke
-
+import re
 dataset_res_dict = {
     "sintel":[448, 1024],
     "scannet":[640, 832],
@@ -13,12 +13,130 @@ dataset_res_dict = {
 
 
 video_extensions = {'.mp4', '.mov',}
-img_extensions = { '.jpeg', '.jpg', '.png', '.tiff', '.tif'}
+img_extensions = { '.jpeg', '.jpg', '.png', '.tiff', '.tif', '.exr'}
+
+class EXRsequences :
+    
+    def __init__(self, path, frame_range_min, frame_range_max, target_fps, dataset):
+        self.path = path
+        self.frame_range_min = frame_range_min
+        self.frame_range_max = frame_range_max
+        self.target_fps = target_fps
+        self.dataset = dataset
+        
+        self.input_path_folder = os.path.dirname(path) + "/"
+        self.input_file_name = str(os.path.splitext(os.path.basename(path))[0])
+        self.file_extension = str(os.path.splitext(os.path.basename(path))[1])
+        
+        
+        if "%04d" in self.input_file_name :
+            self.input_file_name_split = re.split("%04d", self.input_file_name)[0]
+        elif "%03d" in self.input_file_name :
+            self.input_file_name_split = re.split("%03d", self.input_file_name)[0]
+            
+        else :
+            raise TypeError("Input is not a sequence")
+        
+        cut_fn = re.split(r"[{}]".format(self.input_file_name_split[-1]), self.input_file_name)
+        try : 
+            self.index = cut_fn.index("%04d")
+        except : 
+             self.index = cut_fn.index("%03d")
+       
+        
+          
+    
+    
+        
+    def ReadSequence(self):  
+        
+        nuke.tprint('Reading image sequence : ' +str(self.path) )
+        # Read EXR frame
+        if self.target_fps < 0:
+            self.target_fps = 24
+        
+        target_fps = self.target_fps
+        
+        stride = max(round(24 / target_fps), 1)
+        
+        
+        
+        frame_paths = []  
+        
+        for filename in os.listdir(self.input_path_folder):
+            
+            if self.file_extension in os.path.basename(filename):
+                
+                if self.input_file_name_split in filename:
+         
+                    seq = os.path.join(self.input_path_folder, filename)
+                    frame_paths.append(seq)  
+                   
+             
+            
+        frame_paths = sorted(frame_paths)
+            
+        nuke.tprint(str(len(frame_paths)) + ' frames from sequence detected')    
+        
+        
+        
+        convert_num = []
+        for num in frame_paths:
+            
+            num = os.path.splitext(os.path.basename(num))[0]
+            num = re.split(r"[{}]".format(self.input_file_name_split[-1]), num)
+            num = num[self.index]
+            
+            convert_num.append(int(num))
+        convert_num = np.array(convert_num)
+
+
+        process_len = self.frame_range_max - self.frame_range_min
+        frame_start = self.frame_range_min - np.min(convert_num)
+        
+        nuke.tprint('Process Length : ' +str(process_len) )   
+        nuke.tprint('Frame range : ' + str(self.frame_range_min) + " - " + str( self.frame_range_max)) 
+        
+        frame_count = 0   
+        frames = []
+        for fpath in range(0,process_len) :
+        
+            fpath = frame_paths[frame_start]
+            frame = cv2.imread(fpath, cv2.IMREAD_ANYCOLOR | cv2.IMREAD_ANYDEPTH ) 
+            original_height,original_width = frame.shape[:2]
+            
+            if self.dataset=="open":        
+                frame_height = round(original_height / 64) * 64
+                frame_width = round(original_width / 64) * 64
+            else:
+                frame_height = dataset_res_dict[self.dataset][0]
+                frame_width = dataset_res_dict[self.dataset][1] 
+                
+            frame = cv2.resize(frame, (frame_width, frame_height))
+            
+            frame = np.array(frame)
+            
+           
+            if self.file_extension != ".exr" :
+            #Dividing frame value to fit in a 0-1 range
+                nuke.tprint('Dividing normalizing pixel values')  
+                frame = frame/255
+                frame = np.array(frame, np.float32)
+                
+            nuke.tprint('Reading : ' +str(fpath) )  
+            frames.append(frame)
+            frame_count += 1  
+            frame_start += 1
+
+        frames = np.array(frames)  
+        return frames, target_fps, self.frame_range_min
+        
+
 
 
 def read_video_frames(video_path, process_length, target_fps, dataset):
     # a simple function to read video frames
-    nuke.tprint('Reading frames : ' +str(video_path) )
+    nuke.tprint('Reading NORMAL frames : ' +str(video_path) )
     
     
     if any(video_path.lower().endswith(ext) for ext in video_extensions) :
@@ -55,7 +173,10 @@ def read_video_frames(video_path, process_length, target_fps, dataset):
         if frame_count % stride == 0:
             frame = cv2.resize(frame, (frame_width, frame_height))
             frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)  # Convert BGR to RGB
-            frames.append(frame.astype("float32") / 255.0)
+            if ".exr" in video_path: 
+                frames.append(frame)
+            else :
+                frames.append(frame.astype("float32") / 255.0)
             
        
             
@@ -64,7 +185,7 @@ def read_video_frames(video_path, process_length, target_fps, dataset):
     cap.release()
 
     frames = np.array(frames)
-    
+    nuke.tprint('Frames : ' +str(frames) )
     
     return frames, target_fps
 
@@ -75,7 +196,8 @@ def save_video(
     fps: int = 15,
     video_export: bool = False,
     output_height: int = 1080,
-    output_width: int = 1920
+    output_width: int = 1920,
+    frame_start : int = 0
 ) -> str:
     # a simple function to save video frames
     nuke.tprint('Saving files...' )
@@ -92,9 +214,8 @@ def save_video(
     video_writer = cv2.VideoWriter(
        clean_path, fourcc, fps, (width, height), isColor=is_color
     )
-    frame_count = 1
     
-    
+    frame_count = frame_start
     nuke.tprint("Writing...")
     for frame in video_frames:
         frame = cv2.resize(frame, output_size, interpolation=cv2.INTER_AREA )
