@@ -85,7 +85,7 @@ In the Command Prompt type: ```python -m venv /path/to/new/virtual/environment``
 Pytorch/Cuda and xformers
 
 ```bash
-pip install torch==2.0.1+cu118 xformers==0.0.20 --index-url https://download.pytorch.org/whl/cu118
+pip install torch==2.0.1+cu118 --index-url https://download.pytorch.org/whl/cu118
 ```
 Then
 ```bash
