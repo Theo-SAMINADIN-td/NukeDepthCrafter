@@ -3,6 +3,8 @@ import cv2
 import os
 import nuke
 import re
+
+
 dataset_res_dict = {
     "sintel":[448, 1024],
     "scannet":[640, 832],
@@ -17,16 +19,19 @@ img_extensions = { '.jpeg', '.jpg', '.png', '.tiff', '.tif', '.exr'}
 
 class EXRsequences :
     
-    def __init__(self, path, frame_range_min, frame_range_max, target_fps, dataset):
+    def __init__(self, path, frame_range_min, frame_range_max, original_fps, target_fps, dataset, bits):
         self.path = path
         self.frame_range_min = frame_range_min
         self.frame_range_max = frame_range_max
         self.target_fps = target_fps
         self.dataset = dataset
+        self.original_fps = original_fps
+        self.bits = bits 
         
         self.input_path_folder = os.path.dirname(path) + "/"
         self.input_file_name = str(os.path.splitext(os.path.basename(path))[0])
         self.file_extension = str(os.path.splitext(os.path.basename(path))[1])
+        
         
         
         if "%04d" in self.input_file_name :
@@ -49,6 +54,7 @@ class EXRsequences :
     
         
     def ReadSequence(self):  
+        original_fps = self.original_fps
         
         nuke.tprint('Reading image sequence : ' +str(self.path) )
         # Read EXR frame
@@ -57,7 +63,7 @@ class EXRsequences :
         
         target_fps = self.target_fps
         
-        stride = max(round(24 / target_fps), 1)
+        stride = max(round(original_fps / target_fps), 1)
         
         
         
@@ -95,36 +101,65 @@ class EXRsequences :
         frame_start = self.frame_range_min - np.min(convert_num)
         
         nuke.tprint('Process Length : ' +str(process_len) )   
-        nuke.tprint('Frame range : ' + str(self.frame_range_min) + " - " + str( self.frame_range_max)) 
+        nuke.tprint('Frame range : ' + str(self.frame_range_min) + " - " + str( self.frame_range_max-1)) 
         
         frame_count = 0   
         frames = []
         for fpath in range(0,process_len) :
-        
-            fpath = frame_paths[frame_start]
-            frame = cv2.imread(fpath, cv2.IMREAD_ANYCOLOR | cv2.IMREAD_ANYDEPTH ) 
-            original_height,original_width = frame.shape[:2]
             
-            if self.dataset=="open":        
-                frame_height = round(original_height / 64) * 64
-                frame_width = round(original_width / 64) * 64
-            else:
-                frame_height = dataset_res_dict[self.dataset][0]
-                frame_width = dataset_res_dict[self.dataset][1] 
+            if frame_count % stride == 0:
                 
-            frame = cv2.resize(frame, (frame_width, frame_height))
-            
-            frame = np.array(frame)
-            
-           
-            if self.file_extension != ".exr" :
-            #Dividing frame value to fit in a 0-1 range
-                nuke.tprint('Dividing normalizing pixel values')  
-                frame = frame/255
-                frame = np.array(frame, np.float32)
+                fpath = frame_paths[frame_start]
+                frame = cv2.imread(fpath, cv2.IMREAD_ANYCOLOR | cv2.IMREAD_ANYDEPTH ) 
+                original_height,original_width = frame.shape[:2]
                 
-            nuke.tprint('Reading : ' +str(fpath) )  
-            frames.append(frame)
+                if self.dataset=="open":        
+                    frame_height = round(original_height / 64) * 64
+                    frame_width = round(original_width / 64) * 64
+                else:
+                    frame_height = dataset_res_dict[self.dataset][0]
+                    frame_width = dataset_res_dict[self.dataset][1] 
+                    
+                frame = cv2.resize(frame, (frame_width, frame_height))
+                
+                frame = np.array(frame)
+                
+              
+                if "float" not in self.bits :
+                    
+                    if "8" in self.bits:
+                        
+                        #Normalizing 8 bit values to fit in a 0-1 range
+                        nuke.tprint('Normalizing 8-bit pixel values')  
+                        frame = frame/255
+                        frame = np.array(frame, np.float32)
+                        
+                    if "10" in self.bits:
+                        #Normalizing 10 bit values to fit in a 0-1 range
+                        nuke.tprint('Normalizing 10-bit pixel values')  
+                        frame = frame/1023
+                        frame = np.array(frame, np.float32)
+                    
+                    if "12" in self.bits:
+                        #Normalizing 12 bit values to fit in a 0-1 range
+                        nuke.tprint('Normalizing 12-bit pixel values')  
+                        frame = frame/4095
+                        frame = np.array(frame, np.float32)
+                    
+                    if "14" in self.bits:
+                        #Normalizing 12 bit values to fit in a 0-1 range
+                        nuke.tprint('Normalizing 14-bit pixel values')  
+                        frame = frame/16383
+                        frame = np.array(frame, np.float32)
+                        
+                    if "16" in self.bits:
+                        # Normalizing 16 bit values to fit in a 0-1 range
+                        nuke.tprint('Normalizing 16-bit pixel values')  
+                        frame = frame/65535
+                        frame = np.array(frame, np.float32)
+                    
+                nuke.tprint('Reading : ' +str(fpath) )  
+                frames.append(frame)
             frame_count += 1  
             frame_start += 1
 
@@ -134,9 +169,9 @@ class EXRsequences :
 
 
 
-def read_video_frames(video_path, process_length, target_fps, dataset):
+def read_video_frames(video_path, process_length, original_fps, target_fps, dataset):
     # a simple function to read video frames
-    nuke.tprint('Reading NORMAL frames : ' +str(video_path) )
+    nuke.tprint('Reading video frames : ' +str(video_path) )
     
     
     if any(video_path.lower().endswith(ext) for ext in video_extensions) :
@@ -146,8 +181,7 @@ def read_video_frames(video_path, process_length, target_fps, dataset):
     else :
         raise TypeError('Unsupported input format. Input must be: '+ str(video_extensions) + ' or ' + str(img_extensions))
     
-    
-    original_fps = cap.get(cv2.CAP_PROP_FPS)
+
     original_height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
     original_width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
     
@@ -178,14 +212,12 @@ def read_video_frames(video_path, process_length, target_fps, dataset):
             else :
                 frames.append(frame.astype("float32") / 255.0)
             
-       
             
        
         frame_count += 1
     cap.release()
 
     frames = np.array(frames)
-    nuke.tprint('Frames : ' +str(frames) )
     
     return frames, target_fps
 

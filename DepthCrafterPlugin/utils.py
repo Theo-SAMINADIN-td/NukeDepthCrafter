@@ -64,23 +64,29 @@ class DepthCrafterDemo:
         overlap: int = 25,
         height : int = 1080,
         width : int = 1920,
+        original_fps : int = 24,
         target_fps: int = 15,
         seed: int = 42,
         track_time: bool = True,
         save_npz: bool = False,
         video_export: bool = False,
         dataset: str = "open",
-        frame_range: list = [0, 1]
+        frame_range: list = [0, 1],
+        bits: str = "8-bit fixed"
     ):
         nuke.tprint('Entering Inference mode')
         nuke.tprint('Current thread : ' +str(threading.current_thread().name) )
+        nuke.tprint('Original FPS: ' +str(original_fps) )
+        nuke.tprint('Targeted FPS: ' +str(target_fps) )
+        nuke.tprint('Bit Depth : ' +str(bits) )
         set_seed(seed)
         if any(video.lower().endswith(ext) for ext in img_extensions):
-            frames, target_fps, frame_start = EXRsequences(video, frame_range[0], frame_range[1], 24, dataset).ReadSequence()
+            frames, target_fps, frame_start = EXRsequences(video, frame_range[0], frame_range[1], original_fps, target_fps, dataset, bits).ReadSequence()
         else : 
             frames, target_fps = read_video_frames(
-                video, process_length, target_fps, dataset=dataset,
+                video, process_length, original_fps, target_fps, dataset=dataset,
         )
+            frame_start = 0
         
         print(f"==> video name: {video}, frames shape: {frames.shape}")
         nuke.tprint('Starting Inference')

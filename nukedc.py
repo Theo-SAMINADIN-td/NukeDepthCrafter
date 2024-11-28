@@ -1,6 +1,6 @@
 import nuke
 import os
-from DepthCrafterPlugin.utils import *
+from DepthCrafterPlugin.utils import DepthCrafterDemo, gc, torch
 import threading
 from DepthCrafterPlugin.depthcrafter.utils import video_extensions, img_extensions
 
@@ -12,7 +12,9 @@ class InputInfos :
     read = None
     FrameNumber = None
     path = None
-
+    original_fps = None
+    bits = None
+    
     @classmethod
     def getInputInfos(cls):
         f = nuke.thisNode().dependencies()
@@ -22,7 +24,17 @@ class InputInfos :
             for i in f:
                 cls.read = i
 
-
+            # Get metadatas
+            try :
+                
+                cls.original_fps = int(cls.read.metadata()['input/frame_rate'])
+                cls.bits = cls.read.metadata()['input/bitsperchannel']
+                
+                
+            except :
+                cls.original_fps = 24
+                cls.bits = "8-bit fixed"
+                
             try :
                 cls.FrameNumber = cls.read.knob('last').getValue()
             except : 
@@ -36,7 +48,7 @@ class InputInfos :
         except : 
             cls.FrameNumber = nuke.root().knob('last_frame').getValue()
             cls.path = ''
-    
+
     
     
 
@@ -60,10 +72,12 @@ class GenerateDepth :
     process_length = None
     height = None
     width = None
+    original_fps = None
     target_fps = None
     video_export = None
     dataset = None                
-    frame_range = None               
+    frame_range = None
+    bits = None               
                    
     def GenerateDepthAction():
         
@@ -128,21 +142,23 @@ class GenerateDepth :
                 
                 for video in video_paths:
                     video = video
-                    num_denoising_steps = int(nuke.thisNode().knob('InferSteps').value())          # args.num_inference_steps,
-                    guidance_scale = nuke.thisNode().knob('CFG').value()                        # args.guidance_scale,
-                    save_folder = nuke.thisNode().knob('OutputPath').getValue()                 #args.save_folder,
-                    window_size= 110                                                           #args.window_size,
-                    process_length=nuke.thisNode().knob('FrameNumber').value()                  #args.process_length,
-                    overlap= 25                                                                 #args.overlap,
+                    num_denoising_steps = int(nuke.thisNode().knob('InferSteps').value())         
+                    guidance_scale = nuke.thisNode().knob('CFG').value()                      
+                    save_folder = nuke.thisNode().knob('OutputPath').getValue()               
+                    window_size= 110                                                        
+                    process_length=nuke.thisNode().knob('FrameNumber').value()                  
+                    overlap= 25                                                                 
                     height=int(nuke.thisNode().knob('Height').value())
-                    width= int(nuke.thisNode().knob('Width').value())                          #args.max_res,
-                    target_fps=nuke.thisNode().knob('FPS').value()                              #args.target_fps,
-                    seed= 42                                             #args.seed,
-                    track_time= False                                      #args.track_time,
-                    save_npz= False                                       #args.save_npz,
+                    width= int(nuke.thisNode().knob('Width').value())
+                    original_fps = int(InputInfos.original_fps)                        
+                    target_fps=int(nuke.thisNode().knob('FPS').value())                           
+                    seed= 42                                             
+                    track_time= False                                    
+                    save_npz= False                                     
                     video_export=VideoExportBool
                     dataset=nuke.thisNode().knob('Dataset_Select').value()
                     frame_range = [int(nuke.thisNode().knob('FrameRangeMin').value()) , int((nuke.thisNode().knob('FrameRangeMax').value()+ 1))]
+                    bits = InputInfos.bits
                     
                     # create child thread on Inference mode
                     childThread = threading.Thread(target=depthcrafter_demo.infer, args=(
@@ -155,14 +171,16 @@ class GenerateDepth :
                         process_length,   
                         overlap,                                            
                         height,
-                        width,     
+                        width,   
+                        original_fps,  
                         target_fps,       
                         seed,                                              
                         track_time,                                   
                         save_npz,                                       
                         video_export,
                         dataset,
-                        frame_range
+                        frame_range,
+                        bits
                         
                     ))
                     
