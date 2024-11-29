@@ -26,8 +26,9 @@ https://github.com/user-attachments/assets/9414b4e5-d731-4d60-bf90-3f574fe03a24
 ## 💡 Extra features
 
 - Support ImgtoImg, ImgtoVid, VidtoVid, VidtoImg
+- Frame range
 - EXR Sequence export
-- DepthCrafter node
+- EXR Sequence as input
 
 
 ## 🗒️ Requirements
@@ -79,8 +80,6 @@ In the Command Prompt type: ```python -m venv /path/to/new/virtual/environment``
   Go to the [next step](https://github.com/Theo-SAMINADIN-td/NukeDepthCrafter?tab=readme-ov-file#c-dependencies-installation)
 <br><br>
 #### C. Dependencies installation
-<br>
-<br>
 <br>
 Pytorch/Cuda and xformers
 
