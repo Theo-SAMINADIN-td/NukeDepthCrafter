@@ -1,9 +1,10 @@
 import nuke
 import os
-from DepthCrafterPlugin.utils import DepthCrafterDemo, gc, torch
+import gc
+import torch
 import threading
 from DepthCrafterPlugin.depthcrafter.utils import video_extensions, img_extensions
-
+from DepthCrafterPlugin.utils import DepthCrafterDemo
 nuke.tprint('Current thread : ' +str(threading.current_thread().name) )
 
 
